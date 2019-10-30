@@ -1,0 +1,45 @@
+{
+  "name": "redux-dogma",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "Devan Farrell",
+  "main": "dist/index.js",
+  "module": "dist/redux-dogma.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test --env=jsdom",
+    "lint": "tsdx lint"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.19",
+    "@types/react-dom": "^16.9.2",
+    "husky": "^3.0.9",
+    "tsdx": "^0.10.5",
+    "tslib": "^1.10.0",
+    "typescript": "^3.6.4"
+  },
+  "dependencies": {
+    "immer": "^4.0.2",
+    "redux": "^4.0.4",
+    "redux-devtools-extension": "^2.13.8",
+    "redux-immutable-state-invariant": "^2.1.0",
+    "redux-saga": "^1.1.1",
+    "reselect": "^4.0.0"
+  }
+}
