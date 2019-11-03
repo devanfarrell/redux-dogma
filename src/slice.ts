@@ -1,3 +1,4 @@
+import { ActionGenerator } from './types';
 import { AnyAction } from 'redux';
 import { createSelector } from 'reselect';
 import produce from 'immer';
@@ -10,10 +11,6 @@ export interface ActionMap {
   [actionName: string]: Function;
 }
 
-export interface ActionGenerator {
-  (payload?: any): AnyAction | KeyedAction;
-}
-
 export interface Slice {
   actionHandlers: ActionMap;
   // combinedReducer: Reducer;
@@ -24,6 +21,7 @@ export interface Slice {
   // reducers: ReducersMapObject;
   reduce(state: any, action: AnyAction): void;
   createAction(actionName: string, callback: Function): ActionGenerator;
+  addAction(actionName: string, callback: Function): void;
   selectState(): unknown;
   // addSlice(slice: Slice): void;
 }
@@ -74,12 +72,8 @@ class slice implements Slice {
     });
   }
 
-  public addAction(actionName: string, callback: Function) {
+  public addAction(actionName: string, callback: Function): void {
     this.actionHandlers[actionName] = callback;
-    return (payload: any): AnyAction => ({
-      type: actionName,
-      payload,
-    });
   }
 
   public selectState() {
