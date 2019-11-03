@@ -1,19 +1,9 @@
 import { createStore, Store, applyMiddleware, StoreEnhancer } from 'redux';
-import { Slice } from './slice';
+import { Slice, SliceManagerInterface, StoreAbstraction } from './types';
 
 import { composeWithDevTools } from 'redux-devtools-extension';
-import SliceManager, { SliceManagerInterface } from './sliceManager';
+import SliceManager from './sliceManager';
 import ReduxSaga from 'redux-saga';
-
-export interface StoreAbstraction {
-  sliceManager: SliceManagerInterface;
-  store: Store;
-  reduxSaga: unknown;
-  unappliedMiddleware: Array<unknown>;
-  middleware: StoreEnhancer;
-  getRawStore(): Store;
-  addSlice(slice: Slice): StoreAbstraction;
-}
 
 class storeAbstraction implements StoreAbstraction {
   sliceManager: SliceManagerInterface;
@@ -52,4 +42,6 @@ class storeAbstraction implements StoreAbstraction {
   }
 }
 
-export const createStoreAbstraction = () => new storeAbstraction();
+export function createStoreAbstraction() {
+  return new storeAbstraction();
+}

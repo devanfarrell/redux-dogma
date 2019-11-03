@@ -1,29 +1,10 @@
-import { ActionGenerator } from './types';
+import { ActionGenerator, Slice, ActionMap } from './types';
 import { AnyAction } from 'redux';
 import { createSelector } from 'reselect';
 import produce from 'immer';
 
 export interface KeyedAction extends AnyAction {
   keyChain: Array<string>;
-}
-
-export interface ActionMap {
-  [actionName: string]: Function;
-}
-
-export interface Slice {
-  actionHandlers: ActionMap;
-  // combinedReducer: Reducer;
-  initialState: any;
-  key: string;
-  keyChain: Array<string>;
-  keyScopedActionHandlers: ActionMap;
-  // reducers: ReducersMapObject;
-  reduce(state: any, action: AnyAction): void;
-  createAction(actionName: string, callback: Function): ActionGenerator;
-  addAction(actionName: string, callback: Function): void;
-  selectState(): unknown;
-  // addSlice(slice: Slice): void;
 }
 
 function accessNestedObject(nestedObject: any, keyChain: Array<string>): any {

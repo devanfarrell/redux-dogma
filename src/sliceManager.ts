@@ -1,13 +1,5 @@
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
-import { Slice } from './slice';
-
-export interface SliceManagerInterface {
-  combinedReducer: Reducer;
-  reducers: ReducersMapObject;
-  slices: Array<unknown>;
-  reduce(state: any, action: AnyAction): void;
-  addSlice(slice: Slice): void;
-}
+import { Slice, SliceManagerInterface } from './types';
 
 export default class SliceManager implements SliceManagerInterface {
   combinedReducer: Reducer;
