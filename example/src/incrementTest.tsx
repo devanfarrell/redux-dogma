@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { increment, decrement, countSelector } from './count';
-import { increment2, decrement2, countSelector2 } from './count2';
-import { clearIncrements } from './sharedActions';
+import { increment, decrement, countSelector } from './redux/count';
+import { increment2, decrement2, countSelector2 } from './redux/count2';
+import { clearIncrements } from './redux/sharedActions';
 
-const Test = props => {
+const InrementTest = () => {
   const dispatch = useDispatch();
 
   const localIncrement = () => {
@@ -42,4 +42,4 @@ const Test = props => {
   );
 };
 
-export default Test;
+export default InrementTest;

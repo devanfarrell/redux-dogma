@@ -1,4 +1,4 @@
-import { createSlice } from '../dist';
+import { createSlice, Selector } from 'redux-dogma';
 import { CLEAR_INCREMENTS } from './sharedActions';
 
 export const countSlice = createSlice('count', 0);
@@ -18,4 +18,4 @@ countSlice.addAction(CLEAR_INCREMENTS, (draft: number) => {
   return draft;
 });
 
-export const countSelector = countSlice.selectState();
+export const countSelector: Selector = countSlice.selectState();
