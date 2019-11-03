@@ -3,12 +3,12 @@ import { Slice, SliceManagerInterface, StoreAbstraction } from './types';
 
 import { composeWithDevTools } from 'redux-devtools-extension';
 import SliceManager from './sliceManager';
-import ReduxSaga from 'redux-saga';
+import ReduxSaga, { SagaMiddleware } from 'redux-saga';
 
 class storeAbstraction implements StoreAbstraction {
   sliceManager: SliceManagerInterface;
   store: Store;
-  reduxSaga: unknown;
+  reduxSaga: SagaMiddleware;
   unappliedMiddleware: Array<any>;
   middleware: StoreEnhancer;
 
@@ -28,6 +28,7 @@ class storeAbstraction implements StoreAbstraction {
       );
     }
     this.store = createStore(this.sliceManager.reduce, this.middleware);
+    this.reduxSaga.run(this.sliceManager.rootSaga);
   }
 
   getRawStore(): Store {

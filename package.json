@@ -10,10 +10,14 @@
     "dist"
   ],
   "scripts": {
-    "start": "tsdx watch",
     "build": "tsdx build",
+    "dev": "tsdx watch",
+    "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
+    "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
+    "start": "npm run dev",
     "test": "tsdx test --env=jsdom",
-    "lint": "tsdx lint"
+    "lint": "tsdx lint src",
+    "prepare": "npm run lint && npm run format:check && npm test && npm run build"
   },
   "husky": {
     "hooks": {
@@ -27,9 +31,10 @@
     "trailingComma": "es5"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.6.2",
     "@types/jest": "^24.0.21",
-    "@types/react-dom": "^16.9.3",
     "husky": "^3.0.9",
+    "prettier": "^1.18.2",
     "tsdx": "^0.11.0",
     "tslib": "^1.10.0",
     "typescript": "^3.6.4"

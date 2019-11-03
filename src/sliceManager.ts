@@ -1,5 +1,6 @@
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { Slice, SliceManagerInterface } from './types';
+import { takeEvery } from 'redux-saga/effects';
 
 export default class SliceManager implements SliceManagerInterface {
   combinedReducer: Reducer;
@@ -22,5 +23,12 @@ export default class SliceManager implements SliceManagerInterface {
 
   public reduce(state: any, action: AnyAction) {
     return this.combinedReducer(state, action);
+  }
+
+  public *rootSaga(): IterableIterator<any> {
+    console.debug('called');
+    yield takeEvery('@@redux-dogma slice-init', function*(action: AnyAction) {
+      yield console.debug(action);
+    });
   }
 }

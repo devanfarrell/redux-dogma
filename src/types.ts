@@ -39,6 +39,7 @@ export interface SliceManagerInterface {
   slices: Array<unknown>;
   reduce(state: any, action: AnyAction): void;
   addSlice(slice: Slice): void;
+  rootSaga(): IterableIterator<any>;
 }
 
 export interface StoreAbstraction {
