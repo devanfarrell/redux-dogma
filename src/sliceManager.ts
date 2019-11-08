@@ -15,9 +15,9 @@ export default class SliceManager implements SliceManagerInterface {
   }
 
   public addSlice(slice: Slice): void {
-    slice.keyChain = [slice.key];
-    this.reducers[slice.key] = slice.reduce;
+    slice.resolveSlice([]);
     this.slices.push(slice);
+    this.reducers[slice.key] = slice.reduce;
     this.combinedReducer = combineReducers(this.reducers);
   }
 
@@ -26,8 +26,7 @@ export default class SliceManager implements SliceManagerInterface {
   }
 
   public *rootSaga(): IterableIterator<any> {
-    console.debug('called');
-    yield takeEvery('@@redux-dogma slice-init', function*(action: AnyAction) {
+    yield takeEvery('@@redux-dogma: init-slice', function*(action: AnyAction) {
       yield console.debug(action);
     });
   }

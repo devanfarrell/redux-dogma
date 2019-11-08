@@ -6,6 +6,8 @@ import {
   StoreEnhancer,
 } from 'redux';
 
+import { ParametricSelector } from 'reselect';
+
 export interface KeyedAction extends AnyAction {
   keyChain: Array<string>;
 }
@@ -20,23 +22,25 @@ export interface ActionMap {
 
 export interface Slice {
   actionHandlers: ActionMap;
-  // combinedReducer: Reducer;
   initialState: any;
   key: string;
   keyChain: Array<string>;
   keyScopedActionHandlers: ActionMap;
-  // reducers: ReducersMapObject;
+  combinedReducer: Reducer;
+  reducers: ReducersMapObject;
+  slices: Array<Slice>;
   reduce(state: any, action: AnyAction): void;
   createAction(actionName: string, callback: Function): ActionGenerator;
   addAction(actionName: string, callback: Function): void;
-  selectState(): unknown;
-  // addSlice(slice: Slice): void;
+  addSlice(slice: Slice): Slice;
+  selectState(): ParametricSelector<any, unknown, unknown> | undefined;
+  resolveSlice(keyChain: Array<string>): void;
 }
 
 export interface SliceManagerInterface {
   combinedReducer: Reducer;
   reducers: ReducersMapObject;
-  slices: Array<unknown>;
+  slices: Array<Slice>;
   reduce(state: any, action: AnyAction): void;
   addSlice(slice: Slice): void;
   rootSaga(): IterableIterator<any>;

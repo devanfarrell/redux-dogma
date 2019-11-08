@@ -38,7 +38,10 @@ class storeAbstraction implements StoreAbstraction {
   addSlice(slice: Slice): StoreAbstraction {
     slice.keyChain = [slice.key];
     this.sliceManager.addSlice(slice);
-    this.store.dispatch({ type: '@@redux-dogma slice-init' });
+    this.store.dispatch({
+      type: '@@redux-dogma: init-slice',
+      payload: { key: slice.key },
+    });
     return this;
   }
 }

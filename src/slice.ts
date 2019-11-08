@@ -1,5 +1,5 @@
 import { ActionGenerator, Slice, ActionMap } from './types';
-import { AnyAction } from 'redux';
+import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { createSelector } from 'reselect';
 import produce from 'immer';
 
@@ -26,22 +26,26 @@ function keyChainCompare(keys1: Array<string>, keys2: Array<string>): Boolean {
 
 class slice implements Slice {
   actionHandlers: ActionMap;
-  // combinedReducer: Reducer;
   initialState: any;
   key: string;
   keyChain: Array<string>;
   keyScopedActionHandlers: ActionMap;
-  // reducers: ReducersMapObject | null;
+  combinedReducer: Reducer;
+  reducers: ReducersMapObject;
+  slices: Array<Slice>;
+  resolved: Boolean;
 
   constructor(key: string, initialState?: any) {
     this.key = key;
     this.keyChain = [];
     this.actionHandlers = {};
     this.keyScopedActionHandlers = {};
-    // this.reducers = {};
-    // this.combinedReducer = combineReducers(this.reducers);
+    this.reducers = {};
+    this.combinedReducer = combineReducers(this.reducers);
     this.initialState = initialState !== undefined ? initialState : {};
     this.reduce = this.reduce.bind(this);
+    this.slices = [];
+    this.resolved = false;
   }
 
   public createAction(actionName: string, callback: Function): ActionGenerator {
@@ -68,21 +72,45 @@ class slice implements Slice {
     state: any = this.initialState,
     action: AnyAction | KeyedAction
   ) {
-    return produce(state, (draft: any) => {
-      if (
-        !!action.keyChain &&
-        action.keyChain.length === this.keyChain.length &&
-        keyChainCompare(action.keyChain, this.keyChain)
-      ) {
-        if (!!this.keyScopedActionHandlers[action.type]) {
-          draft = this.keyScopedActionHandlers[action.type](draft, action);
+    if (this.slices.length === 0) {
+      return produce(state, (draft: any) => {
+        if (
+          !!action.keyChain &&
+          action.keyChain.length === this.keyChain.length &&
+          keyChainCompare(action.keyChain, this.keyChain)
+        ) {
+          if (!!this.keyScopedActionHandlers[action.type]) {
+            draft = this.keyScopedActionHandlers[action.type](draft, action);
+          }
+        } else {
+          if (!!this.actionHandlers[action.type]) {
+            draft = this.actionHandlers[action.type](draft, action);
+          }
         }
-      } else {
-        if (!!this.actionHandlers[action.type]) {
-          draft = this.actionHandlers[action.type](draft, action);
-        }
-      }
-      return draft;
+        return draft;
+      });
+    } else {
+      return this.combinedReducer(state, action);
+    }
+  }
+
+  public addSlice(slice: Slice): Slice {
+    this.slices.push(slice);
+    if (this.resolved) {
+      slice.resolveSlice(this.keyChain);
+      this.reducers[slice.key] = slice.reduce;
+      this.combinedReducer = combineReducers(this.reducers);
+    }
+    return this;
+  }
+
+  public resolveSlice(keyChain: Array<string>) {
+    this.keyChain = [...keyChain, this.key];
+    this.resolved = true;
+    this.slices.forEach(slice => {
+      slice.resolveSlice(this.keyChain);
+      this.reducers[slice.key] = slice.reduce;
+      this.combinedReducer = combineReducers(this.reducers);
     });
   }
 }
