@@ -1,21 +1,44 @@
-import { createSlice } from 'redux-dogma';
+import { createSlice, createSelector } from 'redux-dogma';
 import { CLEAR_INCREMENTS } from './sharedActions';
 
-export const countSlice2 = createSlice('count2', 0);
+interface Incrementor {
+  increments: number;
+  decrements: number;
+}
 
-export const increment2 = countSlice2.createAction('++', (draft: number) => {
-  draft++;
+const initialState: Incrementor = {
+  increments: 0,
+  decrements: 0,
+};
+
+export const countSlice2 = createSlice('count2', initialState);
+
+export const increment2 = countSlice2.createAction(
+  '++',
+  (draft: Incrementor) => {
+    draft.increments++;
+    return draft;
+  }
+);
+
+export const decrement2 = countSlice2.createAction(
+  '--',
+  (draft: Incrementor) => {
+    draft.decrements++;
+    return draft;
+  }
+);
+
+countSlice2.addAction(CLEAR_INCREMENTS, (draft: Incrementor) => {
+  draft = initialState;
   return draft;
 });
 
-export const decrement2 = countSlice2.createAction('--', (draft: number) => {
-  draft--;
-  return draft;
-});
+export const rawIncrementorSelector = countSlice2.selectState();
 
-countSlice2.addAction(CLEAR_INCREMENTS, (draft: number) => {
-  draft = 0;
-  return draft;
-});
-
-export const countSelector2: any = countSlice2.selectState();
+export const countSelector2: any = createSelector(
+  [rawIncrementorSelector],
+  (increments: Incrementor) => {
+    return increments.increments - increments.decrements;
+  }
+);
