@@ -2,7 +2,8 @@
 
 ```js
 const store = createStoreAbstraction();
-const slice = store.createSlice('user', { dataPoints: [], nickName: '' });
+const userSlice = createSlice('user', { dataPoints: [], nickName: '' });
+store.addSlice(userSlice);
 ```
 
 ### Reducer Concepts
@@ -94,7 +95,10 @@ const selectNickName = createSelector(
 ### Sub Slices
 
 ```js
-const slice = store.createSlice('user');
-const dataPointsSlice = slice.createSlice('dataPoints', []);
-const nickNameSlice = slice.createSlice('nickname', '');
+const store = store.createSlice('user');
+const dataPointsSlice = createSlice('dataPoints', []);
+const nickNameSlice = createSlice('nickname', '');
+store
+  .addSlice(dataPointsSlice)
+  .addSlice(nickNameSlice);
 ```

@@ -34,6 +34,7 @@ class slice implements Slice {
   reducers: ReducersMapObject;
   slices: Array<Slice>;
   resolved: Boolean;
+  hasActions: Boolean;
 
   constructor(key: string, initialState?: any) {
     this.key = key;
@@ -46,9 +47,11 @@ class slice implements Slice {
     this.reduce = this.reduce.bind(this);
     this.slices = [];
     this.resolved = false;
+    this.hasActions = false;
   }
 
   public createAction(actionName: string, callback: Function): ActionGenerator {
+    this.hasActions = true;
     this.keyScopedActionHandlers[actionName] = callback;
     return (payload: any): AnyAction => ({
       type: actionName,
@@ -58,6 +61,7 @@ class slice implements Slice {
   }
 
   public addAction(actionName: string, callback: Function): void {
+    this.hasActions = true;
     this.actionHandlers[actionName] = callback;
   }
 
@@ -107,6 +111,11 @@ class slice implements Slice {
   public resolveSlice(keyChain: Array<string>) {
     this.keyChain = [...keyChain, this.key];
     this.resolved = true;
+    if (this.hasActions && this.slices.length > 0) {
+      throw `ERROR: ${this.key} has both actions and sub slices.
+      You probably should move the actions to another sub slice
+      Slice path: ${this.keyChain}`;
+    }
     this.slices.forEach(slice => {
       slice.resolveSlice(this.keyChain);
       this.reducers[slice.key] = slice.reduce;

@@ -1,6 +1,6 @@
 {
   "name": "redux-dogma",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "author": "Devan Farrell",
   "main": "dist/index.js",
@@ -9,6 +9,10 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devanfarrell/redux-dogma.git"
+  },
   "scripts": {
     "build": "tsdx build",
     "dev": "tsdx watch",
@@ -31,7 +35,6 @@
     "trailingComma": "es5"
   },
   "devDependencies": {
-    "@babel/plugin-transform-runtime": "^7.6.2",
     "@types/jest": "^24.0.21",
     "husky": "^3.0.9",
     "prettier": "^1.18.2",
@@ -40,6 +43,7 @@
     "typescript": "^3.6.4"
   },
   "dependencies": {
+    "@babel/plugin-transform-runtime": "^7.6.2",
     "immer": "^4.0.2",
     "redux": "^4.0.4",
     "redux-devtools-extension": "^2.13.8",
