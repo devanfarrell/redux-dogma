@@ -86,10 +86,7 @@ slice.addCustomEffect(function*() {
 ```js
 const selectUser = slice.getSelector();
 
-const selectNickName = createSelector(
-  [selectUser],
-  user => user.nickName
-);
+const selectNickName = createSelector([selectUser], user => user.nickName);
 ```
 
 ### Sub Slices
@@ -98,7 +95,5 @@ const selectNickName = createSelector(
 const store = store.createSlice('user');
 const dataPointsSlice = createSlice('dataPoints', []);
 const nickNameSlice = createSlice('nickname', '');
-store
-  .addSlice(dataPointsSlice)
-  .addSlice(nickNameSlice);
+store.addSlice(dataPointsSlice).addSlice(nickNameSlice);
 ```

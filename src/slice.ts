@@ -112,9 +112,9 @@ class slice implements Slice {
     this.keyChain = [...keyChain, this.key];
     this.resolved = true;
     if (this.hasActions && this.slices.length > 0) {
-      throw `ERROR: ${this.key} has both actions and sub slices.
+      throw new Error(`ERROR: ${this.key} has both actions and sub slices.
       You probably should move the actions to another sub slice
-      Slice path: ${this.keyChain}`;
+      Slice path: ${this.keyChain}`);
     }
     this.slices.forEach(slice => {
       slice.resolveSlice(this.keyChain);
