@@ -7,13 +7,14 @@ import ReduxSaga, { SagaMiddleware } from 'redux-saga';
 
 class storeAbstraction implements StoreAbstraction {
   sliceManager: SliceManagerInterface;
-  store: Store;
+  store: Store | null;
   reduxSaga: SagaMiddleware;
   unappliedMiddleware: Array<any>;
   middleware: StoreEnhancer;
 
   constructor() {
     const isProduction: boolean = process.env.NODE_ENV === 'production';
+    this.store = null;
     this.sliceManager = new SliceManager();
     this.reduxSaga = ReduxSaga();
     this.unappliedMiddleware = [this.reduxSaga];
@@ -23,25 +24,28 @@ class storeAbstraction implements StoreAbstraction {
       const composeEnhancers = composeWithDevTools({
         /*OPTIONS*/
       });
-      this.middleware = composeEnhancers(
-        applyMiddleware(...this.unappliedMiddleware)
-      );
+      this.middleware = composeEnhancers(applyMiddleware(...this.unappliedMiddleware));
     }
-    this.store = createStore(this.sliceManager.reduce, this.middleware);
-    this.reduxSaga.run(this.sliceManager.rootSaga);
   }
 
-  getRawStore(): Store {
+  getStore(): Store {
+    if (!this.store) {
+      this.store = createStore(this.sliceManager.reduce, this.middleware);
+    }
     return this.store;
   }
 
   addSlice(slice: Slice): StoreAbstraction {
     slice.keyChain = [slice.key];
     this.sliceManager.addSlice(slice);
-    this.store.dispatch({
-      type: '@@redux-dogma: init-slice',
-      payload: { key: slice.key },
-    });
+    return this;
+  }
+
+  lockSideEffects() {
+    if (!this.store) {
+      this.store = createStore(this.sliceManager.reduce, this.middleware);
+    }
+    this.reduxSaga.run(this.sliceManager.rootSaga);
     return this;
   }
 }

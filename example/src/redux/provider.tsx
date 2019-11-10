@@ -4,11 +4,13 @@ import { createStoreAbstraction } from 'redux-dogma';
 
 import { countSliceParent } from './nestedCount';
 
-const abstraction = createStoreAbstraction();
-abstraction.addSlice(countSliceParent);
+const store = createStoreAbstraction()
+  .addSlice(countSliceParent)
+  .lockSideEffects()
+  .getStore();
 
 const reduxProvider = ({ children }) => {
-  return <Provider store={abstraction.store}>{children}</Provider>;
+  return <Provider store={store}>{children}</Provider>;
 };
 
 export default reduxProvider;

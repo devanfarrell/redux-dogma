@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { increment, decrement, countSelector } from './redux/count';
+import { increment, decrement, countSelector, countSideEffect } from './redux/count';
 import { increment2, decrement2, countSelector2 } from './redux/count2';
 import { clearIncrements } from './redux/sharedActions';
 
@@ -23,6 +23,9 @@ const InrementTest = () => {
   const localClearIncrements = () => {
     dispatch(clearIncrements());
   };
+  const localSideEffect = () => {
+    dispatch(countSideEffect());
+  };
 
   const number = useSelector(countSelector);
   const number2 = useSelector(countSelector2);
@@ -38,6 +41,7 @@ const InrementTest = () => {
       <div>{number2}</div>
       <br></br>
       <button onClick={localClearIncrements}>Clear Incements</button>
+      <button onClick={localSideEffect}>Side Effect</button>
     </div>
   );
 };

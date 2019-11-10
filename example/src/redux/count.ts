@@ -36,3 +36,7 @@ export const countSelector: any = createSelector(
     return increments.increments - increments.decrements;
   }
 );
+
+export const countSideEffect = countSlice.createSideEffect('BOOM', function*() {
+  yield console.debug('BOOM DA BOOM BOOM');
+});

@@ -1,6 +1,7 @@
 import { ActionGenerator, Slice, ActionMap } from './types';
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { createSelector } from 'reselect';
+import { takeEvery } from 'redux-saga/effects';
 import produce from 'immer';
 
 export interface KeyedAction extends AnyAction {
@@ -9,8 +10,7 @@ export interface KeyedAction extends AnyAction {
 
 function accessNestedObject(nestedObject: any, keyChain: Array<string>): any {
   return keyChain.reduce(
-    (obj: any, key: string) =>
-      obj && obj[key] !== 'undefined' ? obj[key] : undefined,
+    (obj: any, key: string) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
     nestedObject
   );
 }
@@ -25,11 +25,12 @@ function keyChainCompare(keys1: Array<string>, keys2: Array<string>): Boolean {
 }
 
 class slice implements Slice {
-  actionHandlers: ActionMap;
-  initialState: any;
   key: string;
-  keyChain: Array<string>;
+  actionHandlers: ActionMap;
   keyScopedActionHandlers: ActionMap;
+  sagaActionHandlers: Array<unknown>;
+  initialState: any;
+  keyChain: Array<string>;
   combinedReducer: Reducer;
   reducers: ReducersMapObject;
   slices: Array<Slice>;
@@ -41,6 +42,7 @@ class slice implements Slice {
     this.keyChain = [];
     this.actionHandlers = {};
     this.keyScopedActionHandlers = {};
+    this.sagaActionHandlers = [];
     this.reducers = {};
     this.combinedReducer = combineReducers(this.reducers);
     this.initialState = initialState !== undefined ? initialState : {};
@@ -65,6 +67,16 @@ class slice implements Slice {
     this.actionHandlers[actionName] = callback;
   }
 
+  public createSideEffect(actionName: string, callback: GeneratorFunction): ActionGenerator {
+    this.hasActions = true;
+    const type = [...this.keyChain, actionName].join('/');
+    this.sagaActionHandlers.push(takeEvery(type, callback));
+    return (payload: any): AnyAction => ({
+      type,
+      payload,
+    });
+  }
+
   public selectState() {
     return createSelector(
       [state => accessNestedObject(state, this.keyChain)],
@@ -72,10 +84,7 @@ class slice implements Slice {
     );
   }
 
-  public reduce(
-    state: any = this.initialState,
-    action: AnyAction | KeyedAction
-  ) {
+  public reduce(state: any = this.initialState, action: AnyAction | KeyedAction) {
     if (this.slices.length === 0) {
       return produce(state, (draft: any) => {
         if (
@@ -122,7 +131,15 @@ class slice implements Slice {
       this.combinedReducer = combineReducers(this.reducers);
     });
   }
+
+  public *handleSaga(): IterableIterator<any> {
+    for (let slice of this.slices) {
+      yield* slice.handleSaga();
+    }
+    for (let handler of this.sagaActionHandlers) {
+      yield handler;
+    }
+  }
 }
 
-export const createSlice = (key: string, initialState?: any): Slice =>
-  new slice(key, initialState);
+export const createSlice = (key: string, initialState?: any): Slice => new slice(key, initialState);

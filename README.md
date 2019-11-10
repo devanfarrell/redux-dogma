@@ -3,22 +3,17 @@
 ```js
 const store = createStoreAbstraction();
 const userSlice = createSlice('user', { dataPoints: [], nickName: '' });
-store.addSlice(userSlice);
+store.addSlice(userSlice).lockSideEffects();
 ```
 
 ### Reducer Concepts
 
 ```js
-export const addDataPoint = slice.createAction(
-  'ADD_DATA_POINT',
-  (state, payload) => {
-    state.dataPoints.push(payload);
-  }
-);
+export const addDataPoint = slice.createAction('ADD_DATA_POINT', (state, payload) => {
+  state.dataPoints.push(payload);
+});
 
-export const [CHANGE_NICKNAME, changeNickName] = createAction(
-  'CHANGE_NICKNAME'
-);
+export const [CHANGE_NICKNAME, changeNickName] = createAction('CHANGE_NICKNAME');
 slice.addAction(CHANGE_NICKNAME, (state, payload) => {
   state.nickName = payload;
 });
@@ -27,25 +22,20 @@ slice.addAction(CHANGE_NICKNAME, (state, payload) => {
 ### Saga Concepts
 
 ```js
-export const addDataPoint = slice.createSideEffect('ADD_DATA_POINT', function*(
-  payload
-) {
+export const addDataPoint = slice.createSideEffect('ADD_DATA_POINT', function*(payload) {
   const response = yield postNewDataPoint(payload);
 });
 
-export const changeNickName = slice.createDebouncedSideEffect(
-  'CHANGE_NICKNAME',
-  function*(payload) {
-    const response = yield changeNickname(payload);
-  }
-);
+export const changeNickName = slice.createDebouncedSideEffect('CHANGE_NICKNAME', function*(
+  payload
+) {
+  const response = yield changeNickname(payload);
+});
 ```
 
 ```js
 export const [ADD_DATA_POINT, addDataPoint] = createAction('ADD_DATA_POINT');
-export const [CHANGE_NICKNAME, changeNickName] = createAction(
-  'CHANGE_NICKNAME'
-);
+export const [CHANGE_NICKNAME, changeNickName] = createAction('CHANGE_NICKNAME');
 
 slice.addSideEffect(ADD_DATA_POINT, function*(payload) {
   const response = yield postNewDataPoint(payload);
@@ -59,9 +49,7 @@ slice.addDebouncedSideEffect(CHANGE_NICKNAME, function*(payload) {
 ### Actions with reducers and side effects
 
 ```js
-export const [CHANGE_NICKNAME, changeNickName] = createAction(
-  'CHANGE_NICKNAME'
-);
+export const [CHANGE_NICKNAME, changeNickName] = createAction('CHANGE_NICKNAME');
 slice.addAction(CHANGE_NICKNAME, (state, payload) => {
   state.nickName = payload;
 });
