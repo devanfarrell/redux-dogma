@@ -1,5 +1,6 @@
-export { createSelector } from 'reselect';
+import * as effects from 'redux-saga/effects';
+export { effects };
 export { createAction } from './createAction';
 export { createStoreAbstraction } from './storeAbstraction';
 export { createSlice } from './slice';
-export { Selector } from 'reselect';
+export { Selector, createSelector } from 'reselect';

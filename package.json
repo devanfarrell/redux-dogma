@@ -30,16 +30,16 @@
     "trailingComma": "es5"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.22",
-    "husky": "^3.0.9",
+    "@types/jest": "^24.0.23",
+    "husky": "^3.1.0",
     "prettier": "^1.19.1",
     "tsdx": "^0.11.0",
     "tslib": "^1.10.0",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "dependencies": {
-    "@babel/plugin-transform-runtime": "^7.6.2",
-    "immer": "^5.0.0",
+    "@babel/plugin-transform-runtime": "^7.7.6",
+    "immer": "^5.0.1",
     "redux": "^4.0.4",
     "redux-devtools-extension": "^2.13.8",
     "redux-immutable-state-invariant": "^2.1.0",

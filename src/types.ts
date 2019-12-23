@@ -25,6 +25,10 @@ export interface Slice {
   selectState(): ParametricSelector<any, unknown, unknown> | undefined;
   resolveSlice(keyChain: Array<string>): void;
   handleSaga(): IterableIterator<any>;
+  createSideEffect(
+    actionName: string,
+    callback: () => Generator<any, void, unknown>
+  ): ActionGenerator;
 }
 
 export interface SliceManagerInterface {
