@@ -1,7 +1,7 @@
 import { AnyAction } from 'redux';
 import { ActionGenerator } from './types';
 
-export function createAction(type: string): [string, ActionGenerator] {
+export function createAction<Payload>(type: string): [string, ActionGenerator<Payload>] {
   return [
     type,
     (payload: any): AnyAction => ({

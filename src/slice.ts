@@ -1,12 +1,8 @@
-import { ActionGenerator, Slice, ActionMap } from './types';
+import { ActionGenerator, Slice, ActionMap, KeyedActionGenerator, KeyedAction } from './types';
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { createSelector } from 'reselect';
 import { takeEvery } from 'redux-saga/effects';
 import produce from 'immer';
-
-export interface KeyedAction extends AnyAction {
-  keyChain: Array<string>;
-}
 
 function accessNestedObject(nestedObject: any, keyChain: Array<string>): any {
   return keyChain.reduce(
@@ -24,7 +20,7 @@ function keyChainCompare(keys1: Array<string>, keys2: Array<string>): Boolean {
   return true;
 }
 
-class slice implements Slice {
+class slice<ReducerStructure> implements Slice<ReducerStructure> {
   key: string;
   actionHandlers: ActionMap;
   keyScopedActionHandlers: ActionMap;
@@ -33,7 +29,7 @@ class slice implements Slice {
   keyChain: Array<string>;
   combinedReducer: Reducer;
   reducers: ReducersMapObject;
-  slices: Array<Slice>;
+  slices: Array<Slice<unknown>>;
   resolved: Boolean;
   hasActions: Boolean;
 
@@ -52,10 +48,14 @@ class slice implements Slice {
     this.hasActions = false;
   }
 
-  public createAction(actionName: string, callback: Function): ActionGenerator {
+  public createAction<Payload>(
+    actionName: string,
+    callback: (draft: any, payload: Payload) => void
+  ): KeyedActionGenerator<Payload> {
     this.hasActions = true;
     this.keyScopedActionHandlers[actionName] = callback;
-    return (payload: any): AnyAction => ({
+
+    return (payload?: Payload): KeyedAction<Payload> => ({
       type: actionName,
       keyChain: this.keyChain,
       payload,
@@ -67,7 +67,10 @@ class slice implements Slice {
     this.actionHandlers[actionName] = callback;
   }
 
-  public createSideEffect(actionName: string, callback: GeneratorFunction): ActionGenerator {
+  public createSideEffect<Payload>(
+    actionName: string,
+    callback: GeneratorFunction
+  ): ActionGenerator<Payload> {
     this.hasActions = true;
     const type = [...this.keyChain, actionName].join('/');
     this.sagaActionHandlers.push(takeEvery(type, callback));
@@ -84,20 +87,20 @@ class slice implements Slice {
     );
   }
 
-  public reduce(state: any = this.initialState, action: AnyAction | KeyedAction) {
+  public reduce(state: ReducerStructure = this.initialState, action: AnyAction) {
     if (this.slices.length === 0) {
-      return produce(state, (draft: any) => {
+      return produce<ReducerStructure>(state, (draft: any) => {
         if (
           !!action.keyChain &&
           action.keyChain.length === this.keyChain.length &&
           keyChainCompare(action.keyChain, this.keyChain)
         ) {
           if (!!this.keyScopedActionHandlers[action.type]) {
-            draft = this.keyScopedActionHandlers[action.type](draft, action);
+            this.keyScopedActionHandlers[action.type](draft, action?.payload);
           }
         } else {
           if (!!this.actionHandlers[action.type]) {
-            draft = this.actionHandlers[action.type](draft, action);
+            this.actionHandlers[action.type](draft, action?.payload);
           }
         }
         return draft;
@@ -107,7 +110,7 @@ class slice implements Slice {
     }
   }
 
-  public addSlice(slice: Slice): Slice {
+  public addSlice<SubreducerStructure>(slice: Slice<SubreducerStructure>): Slice<ReducerStructure> {
     this.slices.push(slice);
     if (this.resolved) {
       slice.resolveSlice(this.keyChain);
@@ -142,4 +145,6 @@ class slice implements Slice {
   }
 }
 
-export const createSlice = (key: string, initialState?: any): Slice => new slice(key, initialState);
+export function createSlice<Structure>(key: string, initialState?: Structure) {
+  return new slice<Structure>(key, initialState);
+}
