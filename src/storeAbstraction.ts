@@ -35,7 +35,7 @@ class storeAbstraction implements StoreAbstraction {
     return this.store;
   }
 
-  addSlice(slice: Slice): StoreAbstraction {
+  addSlice(slice: Slice<unknown>): StoreAbstraction {
     slice.keyChain = [slice.key];
     this.sliceManager.addSlice(slice);
     return this;

@@ -26,9 +26,7 @@ export const addDataPoint = slice.createSideEffect('ADD_DATA_POINT', function*(p
   const response = yield postNewDataPoint(payload);
 });
 
-export const changeNickName = slice.createDebouncedSideEffect('CHANGE_NICKNAME', function*(
-  payload
-) {
+export const changeNickName = slice.createDebouncedSideEffect('CHANGE_NICKNAME', function*(payload) {
   const response = yield changeNickname(payload);
 });
 ```

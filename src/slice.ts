@@ -1,30 +1,15 @@
 import { ActionGenerator, Slice, ActionMap, KeyedActionGenerator, KeyedAction } from './types';
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { createSelector } from 'reselect';
-import { takeEvery } from 'redux-saga/effects';
+import { takeEvery, ForkEffect } from 'redux-saga/effects';
+import { keyChainCompare, accessNestedObject } from './utility';
 import produce from 'immer';
-
-function accessNestedObject(nestedObject: any, keyChain: Array<string>): any {
-  return keyChain.reduce(
-    (obj: any, key: string) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
-    nestedObject
-  );
-}
-
-function keyChainCompare(keys1: Array<string>, keys2: Array<string>): Boolean {
-  for (let i in keys1) {
-    if (keys1[i] !== keys2[i]) {
-      return false;
-    }
-  }
-  return true;
-}
 
 class slice<ReducerStructure> implements Slice<ReducerStructure> {
   key: string;
   actionHandlers: ActionMap;
   keyScopedActionHandlers: ActionMap;
-  sagaActionHandlers: Array<unknown>;
+  sagaActionHandlers: Array<ForkEffect>;
   initialState: any;
   keyChain: Array<string>;
   combinedReducer: Reducer;
@@ -33,7 +18,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
   resolved: Boolean;
   hasActions: Boolean;
 
-  constructor(key: string, initialState?: any) {
+  constructor(key: string, initialState?: ReducerStructure) {
     this.key = key;
     this.keyChain = [];
     this.actionHandlers = {};
@@ -41,7 +26,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
     this.sagaActionHandlers = [];
     this.reducers = {};
     this.combinedReducer = combineReducers(this.reducers);
-    this.initialState = initialState !== undefined ? initialState : {};
+    this.initialState = initialState ?? {};
     this.reduce = this.reduce.bind(this);
     this.slices = [];
     this.resolved = false;
@@ -50,7 +35,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 
   public createAction<Payload>(
     actionName: string,
-    callback: (draft: any, payload: Payload) => void
+    callback: (draft: ReducerStructure, payload: Payload) => void
   ): KeyedActionGenerator<Payload> {
     this.hasActions = true;
     this.keyScopedActionHandlers[actionName] = callback;
@@ -62,14 +47,14 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
     });
   }
 
-  public addAction(actionName: string, callback: Function): void {
+  public addAction<Payload>(actionName: string, callback: (draft: ReducerStructure, payload: Payload) => void): void {
     this.hasActions = true;
     this.actionHandlers[actionName] = callback;
   }
 
   public createSideEffect<Payload>(
     actionName: string,
-    callback: GeneratorFunction
+    callback: (action: KeyedAction<Payload>) => any
   ): ActionGenerator<Payload> {
     this.hasActions = true;
     const type = [...this.keyChain, actionName].join('/');
@@ -81,37 +66,36 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
   }
 
   public selectState() {
-    return createSelector(
-      [state => accessNestedObject(state, this.keyChain)],
-      data => data || null
-    );
+    return createSelector([state => accessNestedObject(state, this.keyChain)], data => data || null);
   }
 
   public reduce(state: ReducerStructure = this.initialState, action: AnyAction) {
+    // If this slice doesn't have subslices, run resolvers on this reducer
     if (this.slices.length === 0) {
       return produce<ReducerStructure>(state, (draft: any) => {
-        if (
-          !!action.keyChain &&
-          action.keyChain.length === this.keyChain.length &&
-          keyChainCompare(action.keyChain, this.keyChain)
-        ) {
+        if (keyChainCompare(action?.keyChain, this.keyChain)) {
+          // if the keychain matches use the resolver
           if (!!this.keyScopedActionHandlers[action.type]) {
             this.keyScopedActionHandlers[action.type](draft, action?.payload);
           }
-        } else {
+        } else if (!action?.keyChain) {
+          // if the keychain doesn't exist, see if there is a resolver
           if (!!this.actionHandlers[action.type]) {
             this.actionHandlers[action.type](draft, action?.payload);
           }
         }
         return draft;
       });
+      // if there are subslices, combine reducers on subslices
     } else {
       return this.combinedReducer(state, action);
     }
   }
 
   public addSlice<SubreducerStructure>(slice: Slice<SubreducerStructure>): Slice<ReducerStructure> {
+    // Add the subslice to the list of sub slices
     this.slices.push(slice);
+    // if this slice is already resolved, resolve the new subslice
     if (this.resolved) {
       slice.resolveSlice(this.keyChain);
       this.reducers[slice.key] = slice.reduce;
@@ -121,13 +105,15 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
   }
 
   public resolveSlice(keyChain: Array<string>) {
+    // Create the keychain
     this.keyChain = [...keyChain, this.key];
     this.resolved = true;
     if (this.hasActions && this.slices.length > 0) {
       throw new Error(`ERROR: ${this.key} has both actions and sub slices.
-      You probably should move the actions to another sub slice
+      You must move the actions to another sub slice
       Slice path: ${this.keyChain}`);
     }
+    // recursively resolve sub-slices
     this.slices.forEach(slice => {
       slice.resolveSlice(this.keyChain);
       this.reducers[slice.key] = slice.reduce;
