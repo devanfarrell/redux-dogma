@@ -40,7 +40,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
     this.hasActions = true;
     this.keyScopedActionHandlers[actionName] = callback;
 
-    return (payload?: Payload): KeyedAction<Payload> => ({
+    return (payload: Payload): KeyedAction<Payload> => ({
       type: actionName,
       keyChain: this.keyChain,
       payload,

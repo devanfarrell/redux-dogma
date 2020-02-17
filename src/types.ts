@@ -2,6 +2,11 @@ import { AnyAction, Reducer, ReducersMapObject, Store, StoreEnhancer } from 'red
 
 import { ParametricSelector } from 'reselect';
 
+export interface Action<Payload> {
+  type: string;
+  payload?: Payload;
+}
+
 export interface KeyedAction<Payload> {
   type: string;
   keyChain: Array<string>;
@@ -9,11 +14,11 @@ export interface KeyedAction<Payload> {
 }
 
 export interface ActionGenerator<Payload> {
-  (payload?: Payload): AnyAction;
+  (payload: Payload): Action<Payload>;
 }
 
 export interface KeyedActionGenerator<Payload> {
-  (payload?: Payload): KeyedAction<Payload>;
+  (payload: Payload): KeyedAction<Payload>;
 }
 export interface ActionMap {
   [actionName: string]: Function;
