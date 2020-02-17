@@ -2,41 +2,51 @@ import { AnyAction, Reducer, ReducersMapObject, Store, StoreEnhancer } from 'red
 
 import { ParametricSelector } from 'reselect';
 
-export interface KeyedAction extends AnyAction {
+export interface Action<Payload> {
+  type: string;
+  payload?: Payload;
+}
+
+export interface KeyedAction<Payload> {
+  type: string;
   keyChain: Array<string>;
+  payload?: Payload;
 }
 
-export interface ActionGenerator {
-  (payload?: any): AnyAction | KeyedAction;
+export interface ActionGenerator<Payload> {
+  (payload: Payload): Action<Payload>;
 }
 
+export interface KeyedActionGenerator<Payload> {
+  (payload: Payload): KeyedAction<Payload>;
+}
 export interface ActionMap {
   [actionName: string]: Function;
 }
 
-export interface Slice {
-  initialState: any;
+export interface Slice<ReducerStructure> {
+  initialState: ReducerStructure;
   key: string;
   keyChain: Array<string>;
-  reduce(state: any, action: AnyAction): void;
-  createAction(actionName: string, callback: Function): ActionGenerator;
+  reduce(state: ReducerStructure, action: AnyAction): void;
+  createAction<Payload>(actionName: string, callback: Function): ActionGenerator<Payload>;
   addAction(actionName: string, callback: Function): void;
-  addSlice(slice: Slice): Slice;
+  addSlice(slice: Slice<unknown>): Slice<unknown>;
   selectState(): ParametricSelector<any, unknown, unknown> | undefined;
   resolveSlice(keyChain: Array<string>): void;
   handleSaga(): IterableIterator<any>;
-  createSideEffect(
+  createSideEffect<Payload>(
     actionName: string,
     callback: () => Generator<any, void, unknown>
-  ): ActionGenerator;
+  ): ActionGenerator<Payload>;
 }
 
 export interface SliceManagerInterface {
   combinedReducer: Reducer;
   reducers: ReducersMapObject;
-  slices: Array<Slice>;
+  slices: Array<Slice<unknown>>;
   reduce(state: any, action: AnyAction): void;
-  addSlice(slice: Slice): void;
+  addSlice(slice: Slice<unknown>): void;
   rootSaga(): IterableIterator<any>;
 }
 
@@ -46,6 +56,6 @@ export interface StoreAbstraction {
   unappliedMiddleware: Array<unknown>;
   middleware: StoreEnhancer;
   getStore(): Store;
-  addSlice(slice: Slice): StoreAbstraction;
+  addSlice(slice: Slice<unknown>): StoreAbstraction;
   lockSideEffects(): StoreAbstraction;
 }

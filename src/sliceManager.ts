@@ -4,7 +4,7 @@ import { Slice, SliceManagerInterface } from './types';
 export default class SliceManager implements SliceManagerInterface {
   combinedReducer: Reducer;
   reducers: ReducersMapObject;
-  slices: Array<Slice>;
+  slices: Array<Slice<unknown>>;
 
   constructor() {
     this.reducers = {};
@@ -14,7 +14,7 @@ export default class SliceManager implements SliceManagerInterface {
     this.rootSaga = this.rootSaga.bind(this);
   }
 
-  public addSlice(slice: Slice): void {
+  public addSlice(slice: Slice<unknown>): void {
     slice.resolveSlice([]);
     this.slices.push(slice);
     this.reducers[slice.key] = slice.reduce;
