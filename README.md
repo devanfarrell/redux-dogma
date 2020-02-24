@@ -4,13 +4,13 @@
 
 ![npm](https://img.shields.io/npm/dm/redux-dogma?style=flat-square)
 
-`npm install @reduxjs/toolkit`
+`npm install redux-dogma`
 
 ## Purpose
 
 The **redux-dogma** project is a redux abstraction for rapid prototypes with two goals in mind. The first goal is to ditch the `switch`. Standard redux code makes following actions through code difficult. This is, in part, because reducers have to be mentally mapped to actions rather than being colocated. The second goal was to remove as much boilerplate as possible.
 
-This package is not a one size fits all solution to redux development. It comes built in with [redux-dogma](https://www.npmjs.com/package/redux-saga) which is overkill for most applications. This may become optional in the future.
+This package is not a one size fits all solution to redux development. It comes built in with [redux-saga](https://www.npmjs.com/package/redux-saga) which is overkill for most applications.
 
 ## API Documentation
 
@@ -45,30 +45,32 @@ const dieStates: DieState[] = [1, 2, 3, 4, 5, 6];
 interface ReducerStructure {
   die1: DieState;
   die2: DieState;
+  hasRolled: boolean;
 }
 
-export const sliceExample = createSlice<ReducerStructure>('playerStructure', { die1: 1, die2: 1 });
+export const diceSlice = createSlice<ReducerStructure>('dice', { die1: 1, die2: 1, hasRolled: false });
 ```
 
 ### Reducer Actions
 
-Reducers use [immer](https://www.npmjs.com/package/immer) under the hood. There are pros and cons that come with this. Immutability is free out of the box but there isn't really any way to opt out of it. Also, because of this slices must be an object in order to maintain the proxy reference.
+Reducers use [immer](https://www.npmjs.com/package/immer) under the hood. There are pros and cons that come with this. Immutability is free out of the box but there isn't any way to opt out of immutability in this library. Also, because of this slices must be an object in order to maintain the proxy reference.
 
 If you're using typescript, types are propagated from the slice creation and the createAction method call to action handler.
 
 ```ts
-export const rollDice = playerSelectionSlice.createAction<undefined>('ROLL_DICE', draft => {
+export const rollDice = diceSlice.createAction<undefined>('ROLL_DICE', draft => {
   const randomIndex1 = Math.round(Math.random() * 7776 - 1) % 6;
   const randomIndex2 = Math.round(Math.random() * 7776 - 1) % 6;
   draft.die1 = dieStates[randomIndex1];
   draft.die2 = dieStates[randomIndex2];
+  draft.hasRolled = true;
 });
 
 interface CheatAction {
   die: 1 | 2;
   value: DieState;
 }
-export const cheat = playerSelectionSlice.createAction<CheatAction>('CHEAT', (draft, payload) => {
+export const cheat = diceSlice.createAction<CheatAction>('CHEAT', (draft, payload) => {
   if (payload.die === 1) {
     draft.die1 = payload.value;
   } else {
@@ -79,7 +81,25 @@ export const cheat = playerSelectionSlice.createAction<CheatAction>('CHEAT', (dr
 
 ### One Action to Many Slices
 
+```ts
+import { createAction } from 'redux-dogma';
 
+export const [RESET_DICE, resetDice] = createAction<undefined>('RESET_DICE');
+
+// From dice slice
+import { RESET_DICE } from './sharedActions;
+
+diceSlice.addAction(RESET_DICE, draft => {
+  draft.die1 = 1;
+  draft.die2 = 1;
+  draft.hasRolled = false;
+})
+
+// From other slice
+exampleSlice.addAction(RESET_DICE, draft=> {
+  draft.diceColorPreference = null;
+})
+```
 
 ### Actions with reducers and side effects
 
@@ -96,4 +116,4 @@ slice.addDebouncedSideEffect(CHANGE_NICKNAME, function*(payload) {
 
 ### Selectors
 
-### Sub-slice Instantiation 
+### Sub-slice Instantiation
