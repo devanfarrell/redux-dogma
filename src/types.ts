@@ -14,11 +14,11 @@ export interface KeyedAction<Payload> {
 }
 
 export interface ActionGenerator<Payload = null> {
-  (payload: Payload): Action<Payload>;
+  (payload?: Payload): Action<Payload>;
 }
 
 export interface KeyedActionGenerator<Payload> {
-  (payload: Payload): KeyedAction<Payload>;
+  (payload?: Payload): KeyedAction<Payload>;
 }
 export interface ActionMap {
   [actionName: string]: Function;

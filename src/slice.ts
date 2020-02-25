@@ -66,7 +66,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
     this.hasActions = true;
     const type = [...this.keyChain, actionName].join('/');
     this.sagaActionHandlers.push(takeEvery(type, callback));
-    return (payload: Payload): Action<Payload> => ({
+    return (payload?: Payload): Action<Payload> => ({
       type,
       payload,
     });
