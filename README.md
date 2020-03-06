@@ -1,7 +1,6 @@
 # Redux Dogma
 
 **A dogmatic and declaritive redux store manager**
-
 ![npm](https://img.shields.io/npm/dm/redux-dogma?style=flat-square)
 
 `npm install redux-dogma`
@@ -87,23 +86,40 @@ import { createAction } from 'redux-dogma';
 export const [RESET_DICE, resetDice] = createAction<undefined>('RESET_DICE');
 
 // From dice slice
-import { RESET_DICE } from './sharedActions;
+import { RESET_DICE } from './sharedActions';
 
 diceSlice.addAction(RESET_DICE, draft => {
   draft.die1 = 1;
   draft.die2 = 1;
   draft.hasRolled = false;
-})
+});
 
 // From other slice
-exampleSlice.addAction(RESET_DICE, draft=> {
+exampleSlice.addAction(RESET_DICE, draft => {
   draft.diceColorPreference = null;
-})
+});
+```
+
+### Side effects
+
+Side effects use [redux-saga](https://www.npmjs.com/package/redux-saga).
+
+```ts
+import { effects } from 'redux-saga';
+
+const tryToCheat = diceSlice.createSideEffect<DieState>("ATTEMPT_CHEAT", function(action)* {
+  const succeed: boolean = !!!Math.round(Math.random());
+  if(succeed) {
+    yield effects.put(cheat(action.payload))
+  } else {
+    yield effects.put(rollDice());
+  }
+});
 ```
 
 ### Actions with reducers and side effects
 
-```js
+```ts
 export const [CHANGE_NICKNAME, changeNickName] = createAction('CHANGE_NICKNAME');
 slice.addAction(CHANGE_NICKNAME, (state, payload) => {
   state.nickName = payload;
@@ -116,4 +132,22 @@ slice.addDebouncedSideEffect(CHANGE_NICKNAME, function*(payload) {
 
 ### Selectors
 
+Selectors use the [reselect](https://www.npmjs.com/package/reselect) library. Type selection is also propagated from the slice.
+
+```ts
+import { createSelector } from 'redux-dogma';
+const rawSelector = diceSlice.selectState();
+const redDie1 = createSelector<any, ReducerStructure, DieState>([rawSelector], state => state.die1);
+```
+
 ### Sub-slice Instantiation
+
+```ts
+import { createSlice } from 'redux-dogma';
+import { diceSlice } from './diceSlice';
+import { scoreSlice } from './scoreSlice';
+
+export const sliceExample = createSlice('parentSliceExample')
+  .addSlice(stateSlice)
+  .addSlice(scoreSlice);
+```
