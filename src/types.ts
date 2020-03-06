@@ -13,12 +13,12 @@ export interface KeyedAction<Payload> {
   payload?: Payload;
 }
 
-export interface ActionGenerator<Payload> {
-  (payload: Payload): Action<Payload>;
+export interface ActionGenerator<Payload = null> {
+  (payload?: Payload): Action<Payload>;
 }
 
 export interface KeyedActionGenerator<Payload> {
-  (payload: Payload): KeyedAction<Payload>;
+  (payload?: Payload): KeyedAction<Payload>;
 }
 export interface ActionMap {
   [actionName: string]: Function;
@@ -29,8 +29,14 @@ export interface Slice<ReducerStructure> {
   key: string;
   keyChain: Array<string>;
   reduce(state: ReducerStructure, action: AnyAction): void;
-  createAction<Payload>(actionName: string, callback: Function): ActionGenerator<Payload>;
-  addAction(actionName: string, callback: Function): void;
+  createAction<Payload>(
+    actionName: string,
+    callback: (draft: ReducerStructure, payload: Payload) => void
+  ): KeyedActionGenerator<Payload>;
+  addAction<Payload>(
+    actionName: string,
+    callback: (draft: ReducerStructure, payload: Payload) => void
+  ): ActionGenerator<Payload>;
   addSlice(slice: Slice<unknown>): Slice<unknown>;
   selectState(): ParametricSelector<any, unknown, unknown> | undefined;
   resolveSlice(keyChain: Array<string>): void;

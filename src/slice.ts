@@ -1,4 +1,4 @@
-import { ActionGenerator, Slice, ActionMap, KeyedActionGenerator, KeyedAction } from './types';
+import { ActionGenerator, Slice, ActionMap, KeyedActionGenerator, KeyedAction, Action } from './types';
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { createSelector } from 'reselect';
 import { takeEvery, ForkEffect } from 'redux-saga/effects';
@@ -40,16 +40,23 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
     this.hasActions = true;
     this.keyScopedActionHandlers[actionName] = callback;
 
-    return (payload: Payload): KeyedAction<Payload> => ({
+    return (payload?: Payload): KeyedAction<Payload> => ({
       type: actionName,
       keyChain: this.keyChain,
       payload,
     });
   }
 
-  public addAction<Payload>(actionName: string, callback: (draft: ReducerStructure, payload: Payload) => void): void {
+  public addAction<Payload>(
+    type: string,
+    callback: (draft: ReducerStructure, payload: Payload) => void
+  ): ActionGenerator<Payload> {
     this.hasActions = true;
-    this.actionHandlers[actionName] = callback;
+    this.actionHandlers[type] = callback;
+    return (payload?: Payload): Action<Payload> => ({
+      type,
+      payload,
+    });
   }
 
   public createSideEffect<Payload>(
@@ -59,7 +66,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
     this.hasActions = true;
     const type = [...this.keyChain, actionName].join('/');
     this.sagaActionHandlers.push(takeEvery(type, callback));
-    return (payload: any): AnyAction => ({
+    return (payload?: Payload): Action<Payload> => ({
       type,
       payload,
     });
