@@ -1,7 +1,8 @@
 # Redux Dogma
 
 **A dogmatic and declaritive redux store manager**
-![npm](https://img.shields.io/npm/dm/redux-dogma?style=flat-square)
+
+![npm](https://img.shields.io/npm/dm/redux-dogma?style=flat) [![Maintainability](https://api.codeclimate.com/v1/badges/c0bca5d87dc8abcfe60a/maintainability)](https://codeclimate.com/github/devanfarrell/redux-dogma/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/c0bca5d87dc8abcfe60a/test_coverage)](https://codeclimate.com/github/devanfarrell/redux-dogma/test_coverage)
 
 `npm install redux-dogma`
 
