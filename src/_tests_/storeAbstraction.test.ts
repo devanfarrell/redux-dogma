@@ -4,6 +4,5 @@ describe('Store abstraction tests', () => {
 		expect(createStoreAbstraction()).toBeDefined();
 		const abstraction = createStoreAbstraction();
 		expect(abstraction).toBeInstanceOf(storeAbstraction);
-        
 	});
 });
