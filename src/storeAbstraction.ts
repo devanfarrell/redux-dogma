@@ -5,7 +5,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import SliceManager from './sliceManager';
 import ReduxSaga, { SagaMiddleware } from 'redux-saga';
 
-class storeAbstraction implements StoreAbstraction {
+export class storeAbstraction implements StoreAbstraction {
 	sliceManager: SliceManagerInterface;
 	store: Store | null;
 	reduxSaga: SagaMiddleware;
