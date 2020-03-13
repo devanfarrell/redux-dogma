@@ -45,7 +45,7 @@ export interface Slice<ReducerStructure> {
 		callback: (draft: Draft<ReducerStructure>, payload: Payload) => void
 	): KeyedActionGenerator<Payload>;
 	createSimpleAction(actionName: string, callback: (draft: Draft<ReducerStructure>) => void): SimpleKeyedActionGenerator;
-	addAction<Payload>(actionName: string, callback: (draft: Draft<ReducerStructure>, payload: Payload) => void): ActionGenerator<Payload>;
+	addAction<Payload>(actionName: string, callback: (draft: Draft<ReducerStructure>, payload?: Payload) => void): ActionGenerator<Payload>;
 	addSlice(slice: Slice<unknown>): Slice<unknown>;
 	selectState(): ParametricSelector<any, unknown, unknown> | undefined;
 	resolveSlice(keyChain: Array<string>): void;

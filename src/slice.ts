@@ -44,7 +44,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		this.hasActions = false;
 	}
 
-	createAction<Payload>(
+	public createAction<Payload>(
 		actionName: string,
 		callback: (draft: Draft<ReducerStructure>, payload: Payload) => void
 	): KeyedActionGenerator<Payload> {
@@ -58,7 +58,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	createSimpleAction(actionName: string, callback: (draft: Draft<ReducerStructure>) => void): SimpleKeyedActionGenerator {
+	public createSimpleAction(actionName: string, callback: (draft: Draft<ReducerStructure>) => void): SimpleKeyedActionGenerator {
 		this.hasActions = true;
 		this.keyScopedActionHandlers[actionName] = callback;
 		return (): SimpleKeyedAction => ({
@@ -67,7 +67,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	addAction<Payload>(type: string, callback: (draft: Draft<ReducerStructure>, payload: Payload) => void): ActionGenerator<Payload> {
+	public addAction<Payload>(type: string, callback: (draft: Draft<ReducerStructure>, payload: Payload) => void): ActionGenerator<Payload> {
 		this.hasActions = true;
 		this.actionHandlers[type] = callback;
 		return (payload?: Payload): Action<Payload> => ({
@@ -76,21 +76,22 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
 		this.hasActions = true;
 		const type = [...this.keyChain, actionName].join('/');
 		this.sagaActionHandlers.push(takeEvery(type, callback));
+
 		return (payload?: Payload): Action<Payload> => ({
 			type,
 			payload,
 		});
 	}
 
-	selectState() {
+	public selectState() {
 		return createSelector([state => accessNestedObject(state, this.keyChain)], data => data || null);
 	}
 
-	reduce(state: ReducerStructure = this.initialState, action: AnyAction) {
+	public reduce(state: ReducerStructure = this.initialState, action: AnyAction) {
 		// If this slice doesn't have subslices, run resolvers on this reducer
 		if (this.slices.length === 0) {
 			return produce<ReducerStructure>(state, (draft: any) => {
@@ -113,7 +114,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		}
 	}
 
-	addSlice<SubreducerStructure>(slice: Slice<SubreducerStructure>): Slice<ReducerStructure> {
+	public addSlice<SubreducerStructure>(slice: Slice<SubreducerStructure>): Slice<ReducerStructure> {
 		// Add the subslice to the list of sub slices
 		this.slices.push(slice);
 		// if this slice is already resolved, resolve the new subslice
@@ -125,7 +126,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		return this;
 	}
 
-	resolveSlice(keyChain: Array<string>) {
+	public resolveSlice(keyChain: Array<string>) {
 		// Create the keychain
 		this.keyChain = [...keyChain, this.key];
 		this.resolved = true;
@@ -142,13 +143,13 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	addUnmanagedReducer(key: string, reducer: Reducer) {
+	public addUnmanagedReducer(key: string, reducer: Reducer) {
 		this.unmanagedReducers[key] = reducer;
 		this.reducers[key] = reducer;
 		this.combinedReducer = combineReducers(this.reducers);
 	}
 
-	*handleSaga(): IterableIterator<any> {
+	public *handleSaga(): IterableIterator<any> {
 		for (let slice of this.slices) {
 			yield* slice.handleSaga();
 		}
