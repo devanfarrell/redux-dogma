@@ -46,19 +46,20 @@ export interface Slice<ReducerStructure> {
 	): KeyedActionGenerator<Payload>;
 	createSimpleAction(actionName: string, callback: (draft: Draft<ReducerStructure>) => void): SimpleKeyedActionGenerator;
 	addAction<Payload>(actionName: string, callback: (draft: Draft<ReducerStructure>, payload?: Payload) => void): ActionGenerator<Payload>;
-	addSlice(slice: Slice<unknown>): Slice<unknown>;
+	addSlice(slice: Slice<unknown>): Slice<ReducerStructure>;
 	selectState(): ParametricSelector<any, unknown, unknown> | undefined;
 	resolveSlice(keyChain: Array<string>): void;
 	handleSaga(): IterableIterator<any>;
 	createSideEffect<Payload>(actionName: string, callback: () => Generator<any, void, unknown>): ActionGenerator<Payload>;
+	addUnmanagedReducer(key: string, reducer: Reducer): Slice<ReducerStructure>;
 }
 
 export interface SliceManagerInterface {
 	combinedReducer: Reducer;
 	reducers: ReducersMapObject;
-	slices: Array<Slice<unknown>>;
+	slices: Slice<any>[];
 	reduce(state: any, action: AnyAction): void;
-	addSlice(slice: Slice<unknown>): void;
+	addSlice(slice: Slice<any>): void;
 	rootSaga(): IterableIterator<any>;
 }
 
@@ -68,6 +69,6 @@ export interface StoreAbstraction {
 	unappliedMiddleware: Array<unknown>;
 	middleware: StoreEnhancer;
 	getStore(): Store;
-	addSlice(slice: Slice<unknown>): StoreAbstraction;
+	addSlice(slice: Slice<any>): StoreAbstraction;
 	lockSideEffects(): StoreAbstraction;
 }

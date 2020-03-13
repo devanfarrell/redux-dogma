@@ -143,10 +143,11 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	public addUnmanagedReducer(key: string, reducer: Reducer) {
+	public addUnmanagedReducer(key: string, reducer: Reducer): Slice<ReducerStructure> {
 		this.unmanagedReducers[key] = reducer;
 		this.reducers[key] = reducer;
 		this.combinedReducer = combineReducers(this.reducers);
+		return this;
 	}
 
 	public *handleSaga(): IterableIterator<any> {
