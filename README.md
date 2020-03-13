@@ -24,13 +24,13 @@ import { createStoreAbstraction } from 'redux-dogma';
 import { sliceExample } from './slices/sliceExample';
 
 const store = createStoreAbstraction()
-  .addSlice(sliceExample) // add all the created slices to the store
-  .lockSideEffects() // call lockSideEffects once all slices have been added
-  .getStore(); // getStore returns a store object from the abstraction
+	.addSlice(sliceExample) // add all the created slices to the store
+	.lockSideEffects() // call lockSideEffects once all slices have been added
+	.getStore(); // getStore returns a store object from the abstraction
 
 // If you're using redux add it to the provider as usual
 const reduxProvider = ({ children }) => {
-  return <Provider store={store}>{children}</Provider>;
+	return <Provider store={store}>{children}</Provider>;
 };
 
 export default reduxProvider;
@@ -43,9 +43,9 @@ type DieState = 1 | 2 | 3 | 4 | 5 | 6;
 const dieStates: DieState[] = [1, 2, 3, 4, 5, 6];
 
 interface ReducerStructure {
-  die1: DieState;
-  die2: DieState;
-  hasRolled: boolean;
+	die1: DieState;
+	die2: DieState;
+	hasRolled: boolean;
 }
 
 export const diceSlice = createSlice<ReducerStructure>('dice', { die1: 1, die2: 1, hasRolled: false });
@@ -59,23 +59,23 @@ If you're using typescript, types are propagated from the slice creation and the
 
 ```ts
 export const rollDice = diceSlice.createAction<undefined>('ROLL_DICE', draft => {
-  const randomIndex1 = Math.round(Math.random() * 7776 - 1) % 6;
-  const randomIndex2 = Math.round(Math.random() * 7776 - 1) % 6;
-  draft.die1 = dieStates[randomIndex1];
-  draft.die2 = dieStates[randomIndex2];
-  draft.hasRolled = true;
+	const randomIndex1 = Math.round(Math.random() * 7776 - 1) % 6;
+	const randomIndex2 = Math.round(Math.random() * 7776 - 1) % 6;
+	draft.die1 = dieStates[randomIndex1];
+	draft.die2 = dieStates[randomIndex2];
+	draft.hasRolled = true;
 });
 
 interface CheatAction {
-  die: 1 | 2;
-  value: DieState;
+	die: 1 | 2;
+	value: DieState;
 }
 export const cheat = diceSlice.createAction<CheatAction>('CHEAT', (draft, payload) => {
-  if (payload.die === 1) {
-    draft.die1 = payload.value;
-  } else {
-    draft.die2 = payload.value;
-  }
+	if (payload.die === 1) {
+		draft.die1 = payload.value;
+	} else {
+		draft.die2 = payload.value;
+	}
 });
 ```
 
@@ -90,14 +90,14 @@ export const [RESET_DICE, resetDice] = createAction<undefined>('RESET_DICE');
 import { RESET_DICE } from './sharedActions';
 
 diceSlice.addAction(RESET_DICE, draft => {
-  draft.die1 = 1;
-  draft.die2 = 1;
-  draft.hasRolled = false;
+	draft.die1 = 1;
+	draft.die2 = 1;
+	draft.hasRolled = false;
 });
 
 // From other slice
 exampleSlice.addAction(RESET_DICE, draft => {
-  draft.diceColorPreference = null;
+	draft.diceColorPreference = null;
 });
 ```
 
@@ -123,11 +123,11 @@ const tryToCheat = diceSlice.createSideEffect<DieState>("ATTEMPT_CHEAT", functio
 ```ts
 export const [CHANGE_NICKNAME, changeNickName] = createAction('CHANGE_NICKNAME');
 slice.addAction(CHANGE_NICKNAME, (state, payload) => {
-  state.nickName = payload;
+	state.nickName = payload;
 });
 
 slice.addDebouncedSideEffect(CHANGE_NICKNAME, function*(payload) {
-  const response = yield changeNickname(payload);
+	const response = yield changeNickname(payload);
 });
 ```
 
@@ -149,6 +149,6 @@ import { diceSlice } from './diceSlice';
 import { scoreSlice } from './scoreSlice';
 
 export const sliceExample = createSlice('parentSliceExample')
-  .addSlice(stateSlice)
-  .addSlice(scoreSlice);
+	.addSlice(stateSlice)
+	.addSlice(scoreSlice);
 ```

@@ -1,50 +1,51 @@
 {
-  "name": "redux-dogma",
-  "version": "0.2.3",
-  "license": "MIT",
-  "author": "Devan Farrell",
-  "main": "dist/index.js",
-  "module": "dist/redux-dogma.esm.js",
-  "typings": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/devanfarrell/redux-dogma.git"
-  },
-  "scripts": {
-    "build": "tsdx build",
-    "dev": "tsdx watch",
-    "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
-    "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
-    "start": "npm run dev",
-    "test": "tsdx test --env=jsdom",
-    "ci:test": "tsdx test --CI --coverage",
-    "lint": "tsdx lint src",
-    "prepare": "npm run lint && npm run format:check && npm test && npm run build"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
-  "devDependencies": {
-    "@types/jest": "^25.1.1",
-    "husky": "^4.2.1",
-    "prettier": "^1.19.1",
-    "tsdx": "^0.12.3",
-    "tslib": "^1.10.0",
-    "typescript": "^3.7.5"
-  },
-  "dependencies": {
-    "@babel/plugin-transform-runtime": "^7.8.3",
-    "immer": "^5.3.6",
-    "redux": "^4.0.5",
-    "redux-devtools-extension": "^2.13.8",
-    "redux-immutable-state-invariant": "^2.1.0",
-    "redux-saga": "^1.1.3",
-    "reselect": "^4.0.0"
-  }
+	"name": "redux-dogma",
+	"version": "0.2.3",
+	"license": "MIT",
+	"author": "Devan Farrell",
+	"main": "dist/index.js",
+	"module": "dist/redux-dogma.esm.js",
+	"typings": "dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/devanfarrell/redux-dogma.git"
+	},
+	"scripts": {
+		"build": "tsdx build",
+		"dev": "tsdx watch",
+		"format": "prettier --write \"src/*.ts\" \"**/*.md\"",
+		"format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
+		"start": "npm run dev",
+		"test": "tsdx test --env=jsdom",
+		"ci:test": "tsdx test --CI --coverage",
+		"lint": "tsdx lint src",
+		"prepare": "npm run lint && npm run format:check && npm test && npm run build"
+	},
+	"prettier": {
+		"printWidth": 120,
+		"semi": true,
+		"singleQuote": true,
+		"trailingComma": "es5",
+		"useTabs": true
+	},
+	"devDependencies": {
+		"@types/jest": "^25.1.4",
+		"husky": "^4.2.1",
+		"prettier": "^1.19.1",
+		"tsdx": "^0.12.3",
+		"tslib": "^1.11.1",
+		"typescript": "^3.8.3"
+	},
+	"dependencies": {
+		"@babel/plugin-transform-runtime": "^7.8.3",
+		"immer": "^6.0.1",
+		"redux": "^4.0.5",
+		"redux-devtools-extension": "^2.13.8",
+		"redux-immutable-state-invariant": "^2.1.0",
+		"redux-saga": "^1.1.3",
+		"reselect": "^4.0.0"
+	}
 }
