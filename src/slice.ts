@@ -67,7 +67,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	public addAction<Payload>(type: string, callback: (draft: Draft<ReducerStructure>, payload: Payload) => void): ActionGenerator<Payload> {
+	public addAction<Payload>(type: string, callback: (draft: Draft<ReducerStructure>, payload?: Payload) => void): ActionGenerator<Payload> {
 		this.hasActions = true;
 		this.actionHandlers[type] = callback;
 		return (payload?: Payload): Action<Payload> => ({
