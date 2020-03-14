@@ -24,8 +24,5 @@ export function keyChainCompare(keys1: string[], keys2: string[]): boolean {
 }
 
 export function accessNestedObject(nestedObject: any, keyChain: string[]): any {
-	return keyChain.reduce(
-		(obj: any, key: string) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
-		nestedObject
-	);
+	return keyChain.reduce((obj: any, key: string) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObject);
 }

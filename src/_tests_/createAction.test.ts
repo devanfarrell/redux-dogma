@@ -4,8 +4,8 @@ var string = 'STRING';
 type PayloadTest = { name: string };
 var payload: PayloadTest = { name: 'Jack' };
 
-describe('Create Action', () => {
-	it('is called without crashing', () => {
+describe('No slice action creation', () => {
+	it('createAction', () => {
 		const [STRING, actionGenerator] = createAction<PayloadTest>(string);
 		expect(STRING).toBe(STRING);
 		const actionGeneratorResult = actionGenerator({ name: 'Jack' });

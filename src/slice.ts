@@ -1,4 +1,13 @@
-import { ActionGenerator, Slice, ActionMap, KeyedActionGenerator, KeyedAction, Action } from './types';
+import {
+	ActionGenerator,
+	Slice,
+	ActionMap,
+	KeyedActionGenerator,
+	KeyedAction,
+	Action,
+	SimpleKeyedActionGenerator,
+	SimpleKeyedAction,
+} from './types';
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { createSelector } from 'reselect';
 import { takeEvery, ForkEffect } from 'redux-saga/effects';
@@ -7,13 +16,14 @@ import produce, { Draft } from 'immer';
 
 class slice<ReducerStructure> implements Slice<ReducerStructure> {
 	key: string;
-	actionHandlers: ActionMap;
-	keyScopedActionHandlers: ActionMap;
+	actionHandlers: ActionMap<ReducerStructure>;
+	keyScopedActionHandlers: ActionMap<ReducerStructure>;
 	sagaActionHandlers: Array<ForkEffect>;
 	initialState: any;
 	keyChain: Array<string>;
 	combinedReducer: Reducer;
 	reducers: ReducersMapObject;
+	unmanagedReducers: ReducersMapObject;
 	slices: Array<Slice<unknown>>;
 	resolved: Boolean;
 	hasActions: Boolean;
@@ -29,6 +39,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		this.initialState = initialState ?? {};
 		this.reduce = this.reduce.bind(this);
 		this.slices = [];
+		this.unmanagedReducers = {};
 		this.resolved = false;
 		this.hasActions = false;
 	}
@@ -40,17 +51,23 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		this.hasActions = true;
 		this.keyScopedActionHandlers[actionName] = callback;
 
-		return (payload?: Payload): KeyedAction<Payload> => ({
+		return (payload: Payload): KeyedAction<Payload> => ({
 			type: actionName,
 			keyChain: this.keyChain,
 			payload,
 		});
 	}
 
-	public addAction<Payload>(
-		type: string,
-		callback: (draft: Draft<ReducerStructure>, payload: Payload) => void
-	): ActionGenerator<Payload> {
+	public createSimpleAction(actionName: string, callback: (draft: Draft<ReducerStructure>) => void): SimpleKeyedActionGenerator {
+		this.hasActions = true;
+		this.keyScopedActionHandlers[actionName] = callback;
+		return (): SimpleKeyedAction => ({
+			type: actionName,
+			keyChain: this.keyChain,
+		});
+	}
+
+	public addAction<Payload>(type: string, callback: (draft: Draft<ReducerStructure>, payload?: Payload) => void): ActionGenerator<Payload> {
 		this.hasActions = true;
 		this.actionHandlers[type] = callback;
 		return (payload?: Payload): Action<Payload> => ({
@@ -59,13 +76,11 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	public createSideEffect<Payload>(
-		actionName: string,
-		callback: (action: KeyedAction<Payload>) => any
-	): ActionGenerator<Payload> {
+	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
 		this.hasActions = true;
 		const type = [...this.keyChain, actionName].join('/');
 		this.sagaActionHandlers.push(takeEvery(type, callback));
+
 		return (payload?: Payload): Action<Payload> => ({
 			type,
 			payload,
@@ -126,6 +141,13 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 			this.reducers[slice.key] = slice.reduce;
 			this.combinedReducer = combineReducers(this.reducers);
 		});
+	}
+
+	public addUnmanagedReducer(key: string, reducer: Reducer): Slice<ReducerStructure> {
+		this.unmanagedReducers[key] = reducer;
+		this.reducers[key] = reducer;
+		this.combinedReducer = combineReducers(this.reducers);
+		return this;
 	}
 
 	public *handleSaga(): IterableIterator<any> {

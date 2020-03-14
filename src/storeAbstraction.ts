@@ -1,4 +1,4 @@
-import { createStore, Store, applyMiddleware, StoreEnhancer } from 'redux';
+import { createStore, Store, applyMiddleware, StoreEnhancer, Reducer } from 'redux';
 import { Slice, SliceManagerInterface, StoreAbstraction } from './types';
 
 import { composeWithDevTools } from 'redux-devtools-extension';
@@ -11,6 +11,7 @@ export class storeAbstraction implements StoreAbstraction {
 	reduxSaga: SagaMiddleware;
 	unappliedMiddleware: Array<any>;
 	middleware: StoreEnhancer;
+	unmanagedRootSaga: Function | null;
 
 	constructor() {
 		const isProduction: boolean = process.env.NODE_ENV === 'production';
@@ -18,6 +19,7 @@ export class storeAbstraction implements StoreAbstraction {
 		this.sliceManager = new SliceManager();
 		this.reduxSaga = ReduxSaga();
 		this.unappliedMiddleware = [this.reduxSaga];
+		this.unmanagedRootSaga = null;
 		if (isProduction) {
 			this.middleware = applyMiddleware(...this.unappliedMiddleware);
 		} else {
@@ -35,17 +37,33 @@ export class storeAbstraction implements StoreAbstraction {
 		return this.store;
 	}
 
-	addSlice(slice: Slice<unknown>): StoreAbstraction {
+	addSlice(slice: Slice<any>): StoreAbstraction {
 		slice.keyChain = [slice.key];
 		this.sliceManager.addSlice(slice);
 		return this;
+	}
+
+	addUnmanagedReducer(key: string, reducer: Reducer): StoreAbstraction {
+		this.sliceManager.reducers[key] = reducer;
+		return this;
+	}
+
+	addUnmanagedRootSaga(saga: Function) {
+		this.unmanagedRootSaga = saga;
 	}
 
 	lockSideEffects() {
 		if (!this.store) {
 			this.store = createStore(this.sliceManager.reduce, this.middleware);
 		}
-		this.reduxSaga.run(this.sliceManager.rootSaga);
+		const abstractionContext = this;
+		function* combinedSaga() {
+			if (abstractionContext.unmanagedRootSaga) {
+				yield* abstractionContext.unmanagedRootSaga();
+			}
+			yield* abstractionContext.sliceManager.rootSaga();
+		}
+		this.reduxSaga.run(combinedSaga);
 		return this;
 	}
 }
