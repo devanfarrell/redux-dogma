@@ -19,6 +19,7 @@ describe('Test creation of all slice actions', () => {
 	const actionTest1 = slice1.createAction<PayloadTest>(testString, () => {});
 	const actionTest2 = slice2_1.createSideEffect<PayloadTest>(testString, function*() {});
 	const actionTest2_1 = slice2_1.createAction<PayloadTest>(testString, () => {});
+	const simpleAction = slice2_1.createSimpleAction('simple', () => {});
 
 	it('slice.createAction', () => {
 		expect(actionTest1({ name: 'testy test' })).toEqual({ type: testString, keyChain: ['slice1'], payload: { name: 'testy test' } });
@@ -28,5 +29,6 @@ describe('Test creation of all slice actions', () => {
 			keyChain: ['slice2', 'slice2_1'],
 			payload: { name: 'testy test' },
 		});
+		expect(simpleAction()).toEqual({ type: 'simple', keyChain: ['slice2', 'slice2_1'] });
 	});
 });

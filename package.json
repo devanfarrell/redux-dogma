@@ -1,6 +1,6 @@
 {
 	"name": "redux-dogma",
-	"version": "0.2.3",
+	"version": "0.3.0-dev",
 	"license": "MIT",
 	"author": "Devan Farrell",
 	"main": "dist/index.js",

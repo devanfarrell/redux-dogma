@@ -1,4 +1,4 @@
-import { createStore, Store, applyMiddleware, StoreEnhancer } from 'redux';
+import { createStore, Store, applyMiddleware, StoreEnhancer, Reducer } from 'redux';
 import { Slice, SliceManagerInterface, StoreAbstraction } from './types';
 
 import { composeWithDevTools } from 'redux-devtools-extension';
@@ -40,6 +40,11 @@ export class storeAbstraction implements StoreAbstraction {
 	addSlice(slice: Slice<any>): StoreAbstraction {
 		slice.keyChain = [slice.key];
 		this.sliceManager.addSlice(slice);
+		return this;
+	}
+
+	addUnmanagedReducer(key: string, reducer: Reducer): StoreAbstraction {
+		this.sliceManager.reducers[key] = reducer;
 		return this;
 	}
 

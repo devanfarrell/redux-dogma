@@ -70,5 +70,6 @@ export interface StoreAbstraction {
 	middleware: StoreEnhancer;
 	getStore(): Store;
 	addSlice(slice: Slice<any>): StoreAbstraction;
+	addUnmanagedReducer(key: string, reducer: Reducer): StoreAbstraction;
 	lockSideEffects(): StoreAbstraction;
 }
