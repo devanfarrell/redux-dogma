@@ -51,6 +51,9 @@ export interface Slice<ReducerStructure> {
 	resolveSlice(keyChain: Array<string>): void;
 	handleSaga(): IterableIterator<any>;
 	createSideEffect<Payload>(actionName: string, callback: () => Generator<any, void, unknown>): ActionGenerator<Payload>;
+	createDebouncedSideEffect<Payload>(actionName: string, callback: () => Generator<any, void, unknown>): ActionGenerator<Payload>;
+	addSideEffect<Payload>(actionName: string, callback: () => Generator<any, void, unknown>): ActionGenerator<Payload>;
+	addDebouncedSideEffect<Payload>(actionName: string, callback: () => Generator<any, void, unknown>): ActionGenerator<Payload>;
 	addUnmanagedReducer(key: string, reducer: Reducer): Slice<ReducerStructure>;
 }
 

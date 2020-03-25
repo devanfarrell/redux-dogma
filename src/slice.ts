@@ -10,7 +10,7 @@ import {
 } from './types';
 import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
 import { createSelector } from 'reselect';
-import { takeEvery, ForkEffect } from 'redux-saga/effects';
+import { takeEvery, takeLatest, ForkEffect } from 'redux-saga/effects';
 import { keyChainCompare, accessNestedObject } from './utility';
 import produce, { Draft } from 'immer';
 
@@ -76,19 +76,8 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
-		this.hasActions = true;
-		const type = [...this.keyChain, actionName].join('/');
-		this.sagaActionHandlers.push(takeEvery(type, callback));
-
-		return (payload?: Payload): Action<Payload> => ({
-			type,
-			payload,
-		});
-	}
-
 	public selectState() {
-		return createSelector([state => accessNestedObject(state, this.keyChain)], data => data || null);
+		return createSelector([(state) => accessNestedObject(state, this.keyChain)], (data) => data || null);
 	}
 
 	public reduce(state: ReducerStructure = this.initialState, action: AnyAction) {
@@ -136,7 +125,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
       Slice path: ${this.keyChain}`);
 		}
 		// recursively resolve sub-slices
-		this.slices.forEach(slice => {
+		this.slices.forEach((slice) => {
 			slice.resolveSlice(this.keyChain);
 			this.reducers[slice.key] = slice.reduce;
 			this.combinedReducer = combineReducers(this.reducers);
@@ -157,6 +146,53 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		for (let handler of this.sagaActionHandlers) {
 			yield handler;
 		}
+	}
+
+	private addEffect<Payload>(
+		takePattern: (type: string, callback: (action: KeyedAction<Payload>) => any) => ForkEffect<Payload>,
+		type: string,
+		callback: (action: KeyedAction<Payload>) => any
+	): ActionGenerator<Payload> {
+		this.hasActions = true;
+		this.sagaActionHandlers.push(takePattern(type, callback));
+		return (payload?: Payload): Action<Payload> => ({
+			type,
+			payload,
+		});
+	}
+
+	public addSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+		return this.addEffect(takeEvery, actionName, callback);
+	}
+
+	// public addSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+	// 	this.hasActions = true;
+	// 	this.sagaActionHandlers.push(takeEvery(actionName, callback));
+
+	// 	return (payload?: Payload): Action<Payload> => ({
+	// 		type: actionName,
+	// 		payload,
+	// 	});
+	// }
+
+	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+		const type = [...this.keyChain, actionName].join('/');
+		return this.addSideEffect(type, callback);
+	}
+
+	public addDebouncedSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+		this.hasActions = true;
+		this.sagaActionHandlers.push(takeLatest(actionName, callback));
+
+		return (payload?: Payload): Action<Payload> => ({
+			type: actionName,
+			payload,
+		});
+	}
+
+	public createDebouncedSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+		const type = [...this.keyChain, actionName].join('/');
+		return this.addDebouncedSideEffect(type, callback);
 	}
 }
 
