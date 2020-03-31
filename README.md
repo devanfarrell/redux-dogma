@@ -58,7 +58,7 @@ Reducers use [immer](https://www.npmjs.com/package/immer) under the hood. There 
 If you're using typescript, types are propagated from the slice creation and the createAction method call to action handler.
 
 ```ts
-export const rollDice = diceSlice.createAction<undefined>('ROLL_DICE', draft => {
+export const rollDice = diceSlice.createAction<undefined>('ROLL_DICE', (draft) => {
 	const randomIndex1 = Math.round(Math.random() * 7776 - 1) % 6;
 	const randomIndex2 = Math.round(Math.random() * 7776 - 1) % 6;
 	draft.die1 = dieStates[randomIndex1];
@@ -89,14 +89,14 @@ export const [RESET_DICE, resetDice] = createAction<undefined>('RESET_DICE');
 // From dice slice
 import { RESET_DICE } from './sharedActions';
 
-diceSlice.addAction(RESET_DICE, draft => {
+diceSlice.addAction(RESET_DICE, (draft) => {
 	draft.die1 = 1;
 	draft.die2 = 1;
 	draft.hasRolled = false;
 });
 
 // From other slice
-exampleSlice.addAction(RESET_DICE, draft => {
+exampleSlice.addAction(RESET_DICE, (draft) => {
 	draft.diceColorPreference = null;
 });
 ```
@@ -126,7 +126,7 @@ slice.addAction(CHANGE_NICKNAME, (state, payload) => {
 	state.nickName = payload;
 });
 
-slice.addDebouncedSideEffect(CHANGE_NICKNAME, function*(payload) {
+slice.addDebouncedSideEffect(CHANGE_NICKNAME, function* (payload) {
 	const response = yield changeNickname(payload);
 });
 ```
@@ -138,7 +138,7 @@ Selectors use the [reselect](https://www.npmjs.com/package/reselect) library. Ty
 ```ts
 import { createSelector } from 'redux-dogma';
 const rawSelector = diceSlice.selectState();
-const redDie1 = createSelector<any, ReducerStructure, DieState>([rawSelector], state => state.die1);
+const redDie1 = createSelector<any, ReducerStructure, DieState>([rawSelector], (state) => state.die1);
 ```
 
 ### Sub-slice Instantiation
@@ -148,7 +148,5 @@ import { createSlice } from 'redux-dogma';
 import { diceSlice } from './diceSlice';
 import { scoreSlice } from './scoreSlice';
 
-export const sliceExample = createSlice('parentSliceExample')
-	.addSlice(stateSlice)
-	.addSlice(scoreSlice);
+export const sliceExample = createSlice('parentSliceExample').addSlice(stateSlice).addSlice(scoreSlice);
 ```

@@ -48,8 +48,9 @@ export class storeAbstraction implements StoreAbstraction {
 		return this;
 	}
 
-	addUnmanagedRootSaga(saga: Function) {
+	addUnmanagedRootSaga(saga: Function): StoreAbstraction {
 		this.unmanagedRootSaga = saga;
+		return this;
 	}
 
 	lockSideEffects() {
