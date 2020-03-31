@@ -165,16 +165,6 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		return this.addEffect(takeEvery, actionName, callback);
 	}
 
-	// public addSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
-	// 	this.hasActions = true;
-	// 	this.sagaActionHandlers.push(takeEvery(actionName, callback));
-
-	// 	return (payload?: Payload): Action<Payload> => ({
-	// 		type: actionName,
-	// 		payload,
-	// 	});
-	// }
-
 	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
 		const type = [...this.keyChain, actionName].join('/');
 		return this.addSideEffect(type, callback);
