@@ -1,6 +1,6 @@
 # Redux Dogma
 
-**A dogmatic and declaritive redux store manager**
+**A dogmatic and declarative redux store manager**
 
 ![npm](https://img.shields.io/npm/dm/redux-dogma?style=flat) [![Maintainability](https://api.codeclimate.com/v1/badges/c0bca5d87dc8abcfe60a/maintainability)](https://codeclimate.com/github/devanfarrell/redux-dogma/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/c0bca5d87dc8abcfe60a/test_coverage)](https://codeclimate.com/github/devanfarrell/redux-dogma/test_coverage)
 
@@ -8,7 +8,7 @@
 
 ## Purpose
 
-The **redux-dogma** project is a redux abstraction for rapid prototypes with two goals in mind. The first goal is to ditch the `switch`. Standard redux code makes following actions through code difficult. This is, in part, because reducers have to be mentally mapped to actions rather than being colocated. The second goal was to remove as much boilerplate as possible.
+The **redux-dogma** project is a redux abstraction for rapid prototypes with a few goals in mind. First, is to have a strong typing abstraction for redux. All actions have typed payloads and reducer structures are propagated to the action handlers. The next goal is to ditch the `switch`. Low-level redux code makes following actions through code difficult, this is, in part, because reducers have to be mentally mapped to actions rather than being colocated. Finally, last goal was to remove as much boilerplate as possible.
 
 This package is not a one size fits all solution to redux development. It comes built in with [redux-saga](https://www.npmjs.com/package/redux-saga) which is overkill for most applications.
 
@@ -55,10 +55,10 @@ export const diceSlice = createSlice<ReducerStructure>('dice', { die1: 1, die2: 
 
 Reducers use [immer](https://www.npmjs.com/package/immer) under the hood. There are pros and cons that come with this. Immutability is free out of the box but there isn't any way to opt out of immutability in this library. Also, because of this slices must be an object in order to maintain the proxy reference.
 
-If you're using typescript, types are propagated from the slice creation and the createAction method call to action handler.
+If you're using typescript, types are propagated from the slice creation and the createAction method call to action handler. If your action doesn't have a payload, use the `createSimpleAction` method.
 
 ```ts
-export const rollDice = diceSlice.createAction<undefined>('ROLL_DICE', (draft) => {
+export const rollDice = diceSlice.createSimpleAction('ROLL_DICE', (draft) => {
 	const randomIndex1 = Math.round(Math.random() * 7776 - 1) % 6;
 	const randomIndex2 = Math.round(Math.random() * 7776 - 1) % 6;
 	draft.die1 = dieStates[randomIndex1];
