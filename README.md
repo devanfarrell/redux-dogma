@@ -136,7 +136,7 @@ slice.addDebouncedSideEffect(CHANGE_NICKNAME, function* (payload) {
 Selectors use the [reselect](https://www.npmjs.com/package/reselect) library. Type selection is also propagated from the slice.
 
 ```ts
-import { createSelector } from 'redux-dogma';
+import { createSelector } from 'reselect';
 const rawSelector = diceSlice.selectState();
 const redDie1 = createSelector<any, ReducerStructure, DieState>([rawSelector], (state) => state.die1);
 ```

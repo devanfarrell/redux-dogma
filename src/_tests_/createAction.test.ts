@@ -6,8 +6,7 @@ var payload: PayloadTest = { name: 'Jack' };
 
 describe('No slice action creation', () => {
 	it('createAction', () => {
-		const [STRING, actionGenerator] = createAction<PayloadTest>(string);
-		expect(STRING).toBe(STRING);
+		const actionGenerator = createAction<PayloadTest>(string);
 		const actionGeneratorResult = actionGenerator({ name: 'Jack' });
 		expect(actionGeneratorResult.type).toBe(string);
 		expect(actionGeneratorResult.payload).toStrictEqual(payload);

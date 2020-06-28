@@ -1,30 +1,53 @@
-import {
-	ActionGenerator,
-	Slice,
-	ActionMap,
-	KeyedActionGenerator,
-	KeyedAction,
-	Action,
-	SimpleKeyedActionGenerator,
-	SimpleKeyedAction,
-} from './types';
-import { AnyAction, combineReducers, Reducer, ReducersMapObject } from 'redux';
-import { createSelector } from 'reselect';
-import { takeEvery, takeLatest, ForkEffect } from 'redux-saga/effects';
-import { keyChainCompare, accessNestedObject } from './utility';
 import produce, { Draft } from 'immer';
+import { AnyAction, combineReducers, Reducer, ReducersMapObject, Store } from 'redux';
+import { ForkEffect, takeEvery, takeLatest } from 'redux-saga/effects';
+import { accessNestedObject, keyChainCompare } from './utility';
 
-class slice<ReducerStructure> implements Slice<ReducerStructure> {
+interface SimpleKeyedAction {
+	type: string;
+	keyChain: string[];
+}
+
+interface SimpleKeyedActionGenerator {
+	(): SimpleKeyedAction;
+}
+
+interface KeyedAction<Payload> {
+	type: string;
+	keyChain: string[];
+	payload: Payload;
+}
+
+interface KeyedActionGenerator<Payload> {
+	(payload: Payload): KeyedAction<Payload>;
+}
+
+// deprecate
+interface Action<Payload> {
+	type: string;
+	payload?: Payload;
+}
+
+// deprecate
+interface ActionGenerator<Payload = null> {
+	(payload?: Payload): Action<Payload>;
+}
+
+interface ActionMap<ReducerStructure> {
+	[key: string]: (draft: Draft<ReducerStructure>, payload: any) => void;
+}
+
+export class Slice<ReducerStructure> {
 	key: string;
 	actionHandlers: ActionMap<ReducerStructure>;
 	keyScopedActionHandlers: ActionMap<ReducerStructure>;
-	sagaActionHandlers: Array<ForkEffect>;
+	sagaActionHandlers: ForkEffect[];
 	initialState: any;
-	keyChain: Array<string>;
+	keyChain: string[];
 	combinedReducer: Reducer;
 	reducers: ReducersMapObject;
 	unmanagedReducers: ReducersMapObject;
-	slices: Array<Slice<unknown>>;
+	slices: Slice<any>[];
 	resolved: Boolean;
 	hasActions: Boolean;
 
@@ -37,6 +60,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		this.reducers = {};
 		this.combinedReducer = combineReducers(this.reducers);
 		this.initialState = initialState ?? {};
+		// @ts-ignore
 		this.reduce = this.reduce.bind(this);
 		this.slices = [];
 		this.unmanagedReducers = {};
@@ -67,17 +91,26 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	public addAction<Payload>(type: string, callback: (draft: Draft<ReducerStructure>, payload?: Payload) => void): ActionGenerator<Payload> {
+	// public addAction<Payload = unknown>(actionGenerator: (payload: Payload) => Action<Payload>, callback: (draft: Draft<ReducerStructure>, (payload: Payload) => void)) {
+	// 		this.hasActions = true;
+	// 		// @ts-ignore
+	// 		const { type } = actionGenerator();
+	// 		this.actionHandlers[type] = callback;
+	// 	};
+	// }
+
+	public addAction<Payload = unknown>(
+		actionGenerator: (payload: Payload) => Action<Payload>,
+		callback: (draft: Draft<ReducerStructure>, payload: Payload) => void
+	) {
 		this.hasActions = true;
+		// @ts-ignore
+		const { type } = actionGenerator();
 		this.actionHandlers[type] = callback;
-		return (payload?: Payload): Action<Payload> => ({
-			type,
-			payload,
-		});
 	}
 
 	public selectState() {
-		return createSelector([(state) => accessNestedObject(state, this.keyChain)], (data) => data || null);
+		return (state: Store): ReducerStructure => accessNestedObject(state, this.keyChain);
 	}
 
 	public reduce(state: ReducerStructure = this.initialState, action: AnyAction) {
@@ -115,7 +148,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		return this;
 	}
 
-	public resolveSlice(keyChain: Array<string>) {
+	public resolveSlice(keyChain: string[]) {
 		// Create the keychain
 		this.keyChain = [...keyChain, this.key];
 		this.resolved = true;
@@ -151,7 +184,7 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 	private addEffect<Payload>(
 		takePattern: (type: string, callback: (action: KeyedAction<Payload>) => any) => ForkEffect<Payload>,
 		type: string,
-		callback: (action: KeyedAction<Payload>) => any
+		callback: (action: KeyedAction<Payload>) => Generator<any>
 	): ActionGenerator<Payload> {
 		this.hasActions = true;
 		this.sagaActionHandlers.push(takePattern(type, callback));
@@ -161,16 +194,19 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	public addSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+	public addSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => Generator<any>): ActionGenerator<Payload> {
 		return this.addEffect(takeEvery, actionName, callback);
 	}
 
-	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => Generator): ActionGenerator<Payload> {
 		const type = [...this.keyChain, actionName].join('/');
 		return this.addSideEffect(type, callback);
 	}
 
-	public addDebouncedSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+	public addDebouncedSideEffect<Payload>(
+		actionName: string,
+		callback: (action: KeyedAction<Payload>) => Generator<any>
+	): ActionGenerator<Payload> {
 		this.hasActions = true;
 		this.sagaActionHandlers.push(takeLatest(actionName, callback));
 
@@ -180,12 +216,12 @@ class slice<ReducerStructure> implements Slice<ReducerStructure> {
 		});
 	}
 
-	public createDebouncedSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => any): ActionGenerator<Payload> {
+	public createDebouncedSideEffect<Payload>(actionName: string, callback: GeneratorFunction): ActionGenerator<Payload> {
 		const type = [...this.keyChain, actionName].join('/');
 		return this.addDebouncedSideEffect(type, callback);
 	}
 }
 
 export function createSlice<Structure>(key: string, initialState?: Structure) {
-	return new slice<Structure>(key, initialState);
+	return new Slice<Structure>(key, initialState);
 }

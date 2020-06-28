@@ -2,7 +2,7 @@ import { createStoreAbstraction } from '../storeAbstraction';
 import { createSlice } from '../slice';
 import { Reducer } from 'redux';
 
-const unmannagedReducer: Reducer = () => {
+const unmanagedReducer: Reducer = () => {
 	return {};
 };
 const slice = createSlice('slice');
@@ -20,7 +20,7 @@ describe('Test creation of all slice actions', () => {
 	});
 	it('Slices are added without', () => {
 		expect(() => {
-			topSlice.addSlice(slice).addUnmanagedReducer('reducer', unmannagedReducer);
+			topSlice.addSlice(slice).addUnmanagedReducer('reducer', unmanagedReducer);
 			createStoreAbstraction().addSlice(topSlice).lockSideEffects().getStore();
 		}).not.toThrow();
 	});
@@ -37,5 +37,7 @@ describe('Test creation of all slice actions', () => {
 	it('Add a slice after the rest of the store is instantiated', () => {
 		const codeSplitSlice = createSlice('codeSplitSlice');
 		topSlice.addSlice(codeSplitSlice);
+		const reducerKeys = Object.keys(topSlice.reducers);
+		expect(reducerKeys).toEqual(['reducer', 'slice', 'codeSplitSlice']);
 	});
 });

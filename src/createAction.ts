@@ -1,11 +1,7 @@
-import { ActionGenerator, Action } from './types';
+export function createAction<Payload>(type: string) {
+	return (payload: Payload) => ({ type, payload });
+}
 
-export function createAction<Payload>(type: string): [string, ActionGenerator<Payload>] {
-	return [
-		type,
-		(payload?: Payload): Action<Payload> => ({
-			type,
-			payload,
-		}),
-	];
+export function createSimpleAction(type: string) {
+	return () => ({ type });
 }
