@@ -1,6 +1,7 @@
 import produce, { Draft } from 'immer';
 import { AnyAction, combineReducers, Reducer, ReducersMapObject, Store } from 'redux';
 import { ForkEffect, takeEvery, takeLatest } from 'redux-saga/effects';
+import { Action, SimpleAction, SimpleActionGenerator, ActionGenerator } from './types';
 import { accessNestedObject, keyChainCompare } from './utility';
 
 interface SimpleKeyedAction {
@@ -8,29 +9,16 @@ interface SimpleKeyedAction {
 	keyChain: string[];
 }
 
+interface KeyedAction<Payload> extends SimpleKeyedAction {
+	payload: Payload;
+}
+
 interface SimpleKeyedActionGenerator {
 	(): SimpleKeyedAction;
 }
 
-interface KeyedAction<Payload> {
-	type: string;
-	keyChain: string[];
-	payload: Payload;
-}
-
 interface KeyedActionGenerator<Payload> {
 	(payload: Payload): KeyedAction<Payload>;
-}
-
-// deprecate
-interface Action<Payload> {
-	type: string;
-	payload?: Payload;
-}
-
-// deprecate
-interface ActionGenerator<Payload = null> {
-	(payload?: Payload): Action<Payload>;
 }
 
 interface ActionMap<ReducerStructure> {
@@ -68,45 +56,86 @@ export class Slice<ReducerStructure> {
 		this.hasActions = false;
 	}
 
+	/**
+	 * createAction
+	 */
+	public createAction(actionName: string, callback: (draft: Draft<ReducerStructure>) => void): SimpleKeyedActionGenerator;
 	public createAction<Payload>(
 		actionName: string,
 		callback: (draft: Draft<ReducerStructure>, payload: Payload) => void
-	): KeyedActionGenerator<Payload> {
+	): KeyedActionGenerator<Payload>;
+	public createAction(actionName: string, callback: (draft: Draft<ReducerStructure>, payload?: any) => void): any {
 		this.hasActions = true;
 		this.keyScopedActionHandlers[actionName] = callback;
 
-		return (payload: Payload): KeyedAction<Payload> => ({
+		return (payload?: any) => ({
 			type: actionName,
 			keyChain: this.keyChain,
 			payload,
 		});
 	}
 
-	public createSimpleAction(actionName: string, callback: (draft: Draft<ReducerStructure>) => void): SimpleKeyedActionGenerator {
-		this.hasActions = true;
-		this.keyScopedActionHandlers[actionName] = callback;
-		return (): SimpleKeyedAction => ({
-			type: actionName,
-			keyChain: this.keyChain,
-		});
+	/**
+	 * createSideEffect
+	 */
+	public createSideEffect(actionName: string, callback: () => Generator): () => SimpleAction;
+	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => Generator): () => SimpleAction;
+
+	public createSideEffect(actionName: string, callback: (action: any) => Generator): any {
+		const type = [...this.keyChain, actionName].join('/');
+		return this.addEffect(takeEvery, type, callback);
 	}
 
-	// public addAction<Payload = unknown>(actionGenerator: (payload: Payload) => Action<Payload>, callback: (draft: Draft<ReducerStructure>, (payload: Payload) => void)) {
-	// 		this.hasActions = true;
-	// 		// @ts-ignore
-	// 		const { type } = actionGenerator();
-	// 		this.actionHandlers[type] = callback;
-	// 	};
-	// }
+	/**
+	 * createDebouncedSideEffect
+	 */
+	public createDebouncedSideEffect(actionName: string, callback: () => Generator): SimpleActionGenerator;
+	public createDebouncedSideEffect<Payload>(
+		actionName: string,
+		callback: (action: KeyedAction<Payload>) => Generator
+	): ActionGenerator<Payload>;
 
-	public addAction<Payload = unknown>(
-		actionGenerator: (payload: Payload) => Action<Payload>,
-		callback: (draft: Draft<ReducerStructure>, payload: Payload) => void
-	) {
+	public createDebouncedSideEffect(actionName: string, callback: (action?: any) => Generator): any {
+		const type = [...this.keyChain, actionName].join('/');
+		return this.addEffect(takeLatest, type, callback);
+	}
+
+	/**
+	 * addAction
+	 */
+	public addAction(actionGenerator: SimpleActionGenerator, callback: (draft: Draft<ReducerStructure>) => void): void;
+	public addAction<Payload>(
+		actionGenerator: ActionGenerator<Payload>,
+		callback: (draft: Draft<ReducerStructure>, callback: (draft: Draft<ReducerStructure>, payload: Payload) => void) => void
+	): void;
+
+	public addAction(actionGenerator: (payload?: any) => any, callback: (draft: Draft<ReducerStructure>, payload?: any) => void): void {
 		this.hasActions = true;
-		// @ts-ignore
 		const { type } = actionGenerator();
 		this.actionHandlers[type] = callback;
+	}
+
+	/**
+	 * addSideEffect
+	 */
+	public addSideEffect(actionGenerator: SimpleActionGenerator, callback: (action: SimpleAction) => Generator<any>): void;
+	public addSideEffect<Payload>(actionGenerator: ActionGenerator<Payload>, callback: (action: Action<Payload>) => Generator<any>): void;
+	public addSideEffect(actionGenerator: (payload?: any) => any, callback: (action?: any) => Generator<any>): void {
+		const { type } = actionGenerator();
+		this.addEffect(takeEvery, type, callback);
+	}
+
+	/**
+	 * addDebouncedSideEffect
+	 */
+	public addDebouncedSideEffect(actionGenerator: SimpleActionGenerator, callback: (action: SimpleAction) => Generator<any>): void;
+	public addDebouncedSideEffect<Payload>(
+		actionGenerator: ActionGenerator<Payload>,
+		callback: (action: Action<Payload>) => Generator<any>
+	): void;
+	public addDebouncedSideEffect(actionGenerator: (payload?: any) => any, callback: (action?: any) => Generator<any>): void {
+		const { type } = actionGenerator();
+		this.addEffect(takeLatest, type, callback);
 	}
 
 	public selectState() {
@@ -188,37 +217,10 @@ export class Slice<ReducerStructure> {
 	): ActionGenerator<Payload> {
 		this.hasActions = true;
 		this.sagaActionHandlers.push(takePattern(type, callback));
-		return (payload?: Payload): Action<Payload> => ({
+		return (payload?: any) => ({
 			type,
 			payload,
 		});
-	}
-
-	public addSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => Generator<any>): ActionGenerator<Payload> {
-		return this.addEffect(takeEvery, actionName, callback);
-	}
-
-	public createSideEffect<Payload>(actionName: string, callback: (action: KeyedAction<Payload>) => Generator): ActionGenerator<Payload> {
-		const type = [...this.keyChain, actionName].join('/');
-		return this.addSideEffect(type, callback);
-	}
-
-	public addDebouncedSideEffect<Payload>(
-		actionName: string,
-		callback: (action: KeyedAction<Payload>) => Generator<any>
-	): ActionGenerator<Payload> {
-		this.hasActions = true;
-		this.sagaActionHandlers.push(takeLatest(actionName, callback));
-
-		return (payload?: Payload): Action<Payload> => ({
-			type: actionName,
-			payload,
-		});
-	}
-
-	public createDebouncedSideEffect<Payload>(actionName: string, callback: GeneratorFunction): ActionGenerator<Payload> {
-		const type = [...this.keyChain, actionName].join('/');
-		return this.addDebouncedSideEffect(type, callback);
 	}
 }
 
