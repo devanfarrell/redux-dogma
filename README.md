@@ -84,19 +84,19 @@ export const cheat = diceSlice.createAction<CheatAction>('CHEAT', (draft, payloa
 ```ts
 import { createAction } from 'redux-dogma';
 
-export const [RESET_DICE, resetDice] = createAction<undefined>('RESET_DICE');
+export const resetDice = createAction('RESET_DICE');
 
 // From dice slice
-import { RESET_DICE } from './sharedActions';
+import { resetDice } from './sharedActions';
 
-diceSlice.addAction(RESET_DICE, (draft) => {
+diceSlice.addAction(resetDice, (draft) => {
 	draft.die1 = 1;
 	draft.die2 = 1;
 	draft.hasRolled = false;
 });
 
 // From other slice
-exampleSlice.addAction(RESET_DICE, (draft) => {
+exampleSlice.addAction(resetDice, (draft) => {
 	draft.diceColorPreference = null;
 });
 ```
@@ -121,13 +121,13 @@ const tryToCheat = diceSlice.createSideEffect<DieState>("ATTEMPT_CHEAT", functio
 ### Actions with reducers and side effects
 
 ```ts
-export const [CHANGE_NICKNAME, changeNickName] = createAction('CHANGE_NICKNAME');
-slice.addAction(CHANGE_NICKNAME, (state, payload) => {
+export const changeNickName = createAction<{ nickName: string }>('CHANGE_NICKNAME');
+slice.addAction(changeNickName, (draft, payload) => {
 	state.nickName = payload;
 });
 
-slice.addDebouncedSideEffect(CHANGE_NICKNAME, function* (payload) {
-	const response = yield changeNickname(payload);
+slice.addSideEffect(changeNickName, function* (action) {
+	const response = yield postChangeNickname(action.payload);
 });
 ```
 
@@ -136,9 +136,9 @@ slice.addDebouncedSideEffect(CHANGE_NICKNAME, function* (payload) {
 Selectors use the [reselect](https://www.npmjs.com/package/reselect) library. Type selection is also propagated from the slice.
 
 ```ts
-import { createSelector } from 'redux-dogma';
+import { createSelector } from 'reselect';
 const rawSelector = diceSlice.selectState();
-const redDie1 = createSelector<any, ReducerStructure, DieState>([rawSelector], (state) => state.die1);
+const redDie1 = createSelector([rawSelector], (state) => state.die1);
 ```
 
 ### Sub-slice Instantiation

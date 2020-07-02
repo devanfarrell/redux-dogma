@@ -1,4 +1,4 @@
-import { createStoreAbstraction, storeAbstraction } from '../storeAbstraction';
+import { createStoreAbstraction, StoreAbstraction } from '../storeAbstraction';
 import { createSlice } from '../slice';
 import { Reducer } from 'redux';
 describe('Store abstraction tests', () => {
@@ -6,15 +6,15 @@ describe('Store abstraction tests', () => {
 		expect(createStoreAbstraction()).toBeDefined();
 		const abstraction = createStoreAbstraction();
 		const slice = createSlice('slice');
-		const unmannagedReducer: Reducer = () => {
+		const unmanagedReducer: Reducer = () => {
 			return {};
 		};
 
 		expect(() => {
-			abstraction.addSlice(slice).addUnmanagedReducer('reducer', unmannagedReducer).lockSideEffects().getStore();
+			abstraction.addSlice(slice).addUnmanagedReducer('reducer', unmanagedReducer).lockSideEffects().getStore();
 		}).not.toThrow();
 
-		expect(abstraction).toBeInstanceOf(storeAbstraction);
+		expect(abstraction).toBeInstanceOf(StoreAbstraction);
 		const keys = Object.keys(abstraction.sliceManager.reducers);
 		expect(keys).toStrictEqual(['slice', 'reducer']);
 	});
@@ -23,15 +23,15 @@ describe('Store abstraction tests', () => {
 		expect(createStoreAbstraction()).toBeDefined();
 		const abstraction = createStoreAbstraction();
 		const slice = createSlice('slice');
-		const unmannagedReducer: Reducer = () => {
+		const unmanagedReducer: Reducer = () => {
 			return {};
 		};
 
 		expect(() => {
-			abstraction.addSlice(slice).addUnmanagedReducer('reducer', unmannagedReducer).lockSideEffects().getStore();
+			abstraction.addSlice(slice).addUnmanagedReducer('reducer', unmanagedReducer).lockSideEffects().getStore();
 		}).not.toThrow();
 
-		expect(abstraction).toBeInstanceOf(storeAbstraction);
+		expect(abstraction).toBeInstanceOf(StoreAbstraction);
 		const keys = Object.keys(abstraction.sliceManager.reducers);
 		expect(keys).toStrictEqual(['slice', 'reducer']);
 	});
