@@ -18,21 +18,4 @@ describe('Store abstraction tests', () => {
 		const keys = Object.keys(abstraction.sliceManager.reducers);
 		expect(keys).toStrictEqual(['slice', 'reducer']);
 	});
-	process.env.NODE_ENV = 'production';
-	it('Create Production Abstraction', () => {
-		expect(createStoreAbstraction()).toBeDefined();
-		const abstraction = createStoreAbstraction();
-		const slice = createSlice('slice');
-		const unmanagedReducer: Reducer = () => {
-			return {};
-		};
-
-		expect(() => {
-			abstraction.addSlice(slice).addUnmanagedReducer('reducer', unmanagedReducer).lockSideEffects().getStore();
-		}).not.toThrow();
-
-		expect(abstraction).toBeInstanceOf(StoreAbstraction);
-		const keys = Object.keys(abstraction.sliceManager.reducers);
-		expect(keys).toStrictEqual(['slice', 'reducer']);
-	});
 });
